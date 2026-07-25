@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BLANJAAN - Belanja Produk Lokal Jadi Mudah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { primary: '#FF6B00', primaryDark: '#E56000' } }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .app-container { max-width: 480px; margin: 0 auto; background-color: #f5f5f5; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow-x: hidden; padding-bottom: 70px; }
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .header-gradient { background: linear-gradient(to bottom, #FF6B00, #FF822B); }
+        .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .cat-active { border-color: #FF6B00 !important; background-color: #fff3eb !important; }
+        .disabled-btn { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+        .loader-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+
+    <!-- GLOBAL LOADER -->
+    <div id="global-loader" class="loader-overlay active">
+        <i data-lucide="loader-2" class="w-10 h-10 animate-spin text-primary mb-2"></i>
+        <span class="text-sm text-gray-600 font-medium" id="loader-text">Memuat BLANJAAN...</span>
+    </div>
+
+    <!-- VIEW: HOME -->
+    <div id="view-home" class="view-section active">
+        <div class="header-gradient sticky top-0 z-50 px-4 py-3 flex items-center gap-3">
+            <div class="flex-1 bg-white rounded-md flex items-center px-3 py-2 shadow-sm relative pointer-events-auto z-10">
+                <i data-lucide="search" class="text-gray-400 w-5 h-5 pointer-events-none"></i>
+                <input type="text" id="searchInput" placeholder="Cari di Blanjaan..." class="w-full pl-2 outline-none text-sm text-gray-700 pointer-events-auto bg-transparent relative z-20">
+            </div>
+            <div class="relative cursor-pointer" data-action="switchView" data-payload="view-cart">
+                <i data-lucide="clipboard-list" class="text-white w-6 h-6 pointer-events-none"></i>
+                <span id="cart-badge-home" class="absolute -top-1 -right-2 bg-white text-primary text-xs font-bold px-1.5 py-0.5 rounded-full shadow hidden pointer-events-none">0</span>
+            </div>
+        </div>
+
+        <div class="w-full bg-white p-2">
+            <div class="w-full h-36 bg-gray-200 rounded-lg overflow-hidden relative">
+                <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1000" class="w-full h-full object-cover" alt="Banner Promo">
+                <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+                    <h2 class="text-white font-bold text-xl text-center px-4 drop-shadow-md">Temukan Produk Pilihan<br>di Sekitarmu</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white px-2 py-4 mb-2">
+            <div class="flex overflow-x-auto no-scrollbar gap-4 px-2 pb-2" id="category-container"></div>
+        </div>
+
+        <div class="bg-white p-3 mb-2">
+            <h3 class="font-bold text-primary text-lg mb-3 px-1">UMKM Pilihan 🌟</h3>
+            <div class="flex overflow-x-auto no-scrollbar gap-3 pb-2" id="featured-container"></div>
+        </div>
+
+        <div class="px-2 py-3">
+            <h3 class="font-bold text-gray-800 text-lg mb-3 px-2">Rekomendasi</h3>
+            <div class="grid grid-cols-2 gap-2" id="products-container"></div>
+        </div>
+    </div>
+
+    <!-- VIEW: PRODUCT DETAIL -->
+    <div id="view-product" class="view-section bg-white min-h-screen">
+        <div class="absolute top-4 left-4 z-50 bg-black bg-opacity-40 p-2 rounded-full cursor-pointer text-white" data-action="switchView" data-payload="view-home">
+            <i data-lucide="arrow-left" class="w-5 h-5 pointer-events-none"></i>
+        </div>
+        <div class="absolute top-4 right-4 z-50 bg-black bg-opacity-40 p-2 rounded-full cursor-pointer text-white" data-action="switchView" data-payload="view-cart">
+            <i data-lucide="clipboard-list" class="w-5 h-5 pointer-events-none"></i>
+            <span id="cart-badge-detail" class="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded-full hidden pointer-events-none">0</span>
+        </div>
+        <div id="product-detail-content" class="pb-20"></div>
+        <div class="fixed bottom-0 w-full max-w-[480px] bg-white border-t flex h-14 z-50" id="product-bottom-action"></div>
+    </div>
+
+    <!-- VIEW: ORDER LIST (CART) -->
+    <div id="view-cart" class="view-section bg-gray-100 min-h-screen">
+        <div class="bg-white sticky top-0 z-50 px-4 py-3 flex items-center border-b shadow-sm">
+            <button data-action="switchView" data-payload="view-home" class="mr-3 p-1 rounded-full active:bg-gray-100 transition">
+                <i data-lucide="arrow-left" class="w-6 h-6 text-primary pointer-events-none"></i>
+            </button>
+            <h2 class="font-bold text-lg text-gray-800">Daftar Pesanan</h2>
+        </div>
+        <div id="cart-content" class="p-3 pb-24">
+            <div class="text-center py-10 text-gray-500 hidden" id="empty-cart-msg">
+                <i data-lucide="clipboard-x" class="w-16 h-16 mx-auto mb-3 text-gray-300"></i>
+                <p>Daftar pesananmu masih kosong.</p>
+                <button data-action="switchView" data-payload="view-home" class="mt-4 bg-primary text-white px-4 py-2 rounded-md font-medium">Mulai Belanja</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VIEW: SELLER PAGE -->
+    <div id="view-seller" class="view-section bg-gray-100 min-h-screen pb-24">
+        <div class="absolute top-4 left-4 z-50 bg-black bg-opacity-40 p-2 rounded-full cursor-pointer text-white" data-action="switchView" data-payload="view-home">
+            <i data-lucide="arrow-left" class="w-5 h-5 pointer-events-none"></i>
+        </div>
+        <div class="absolute top-4 right-4 z-50 bg-black bg-opacity-40 p-2 rounded-full cursor-pointer text-white" data-action="switchView" data-payload="view-cart">
+            <i data-lucide="clipboard-list" class="w-5 h-5 pointer-events-none"></i>
+            <span id="cart-badge-seller" class="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold px-1.5 py-0.5 rounded-full hidden pointer-events-none">0</span>
+        </div>
+        <div id="seller-page-content"></div>
+    </div>
+
+    <!-- VIEW: ACCOUNT (HUB) -->
+    <div id="view-account" class="view-section bg-gray-50 min-h-screen pb-24">
+        <div class="bg-white sticky top-0 z-50 px-4 py-3 flex items-center border-b shadow-sm">
+            <h2 class="font-bold text-lg text-gray-800" id="account-header-title">Akun Saya</h2>
+        </div>
+        
+        <div id="account-state-container" class="w-full">
+            <!-- Injected by JS based on authState -->
+        </div>
+    </div>
+
+    <!-- VIEW: MITRA ONBOARDING -->
+    <div id="view-mitra" class="view-section bg-white min-h-screen">
+        <div class="bg-white sticky top-0 z-50 px-4 py-3 flex items-center border-b shadow-sm">
+            <button data-action="switchView" data-payload="view-account" class="mr-3 p-1 rounded-full active:bg-gray-100 transition">
+                <i data-lucide="arrow-left" class="w-6 h-6 text-primary pointer-events-none"></i>
+            </button>
+            <h2 class="font-bold text-lg text-gray-800">Daftar Mitra</h2>
+        </div>
+        <div class="header-gradient px-4 py-6 text-white text-center shadow-md">
+            <h1 class="text-2xl font-bold mb-1">Buka Toko di BLANJAAN</h1>
+            <p class="text-sm opacity-90">Gratis untuk 1 produk dan 1 gambar. Produk tambahan tersedia melalui paket berbayar.</p>
+        </div>
+        <div class="p-5">
+            <form id="mitraForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Toko/Usaha</label>
+                    <input type="text" id="mitraStore" required minlength="2" maxlength="100" placeholder="Contoh: Kopi Janji Kita" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Nomor WhatsApp Toko</label>
+                    <input type="tel" id="mitraWa" required placeholder="Contoh: 081234567890" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary">
+                    <p class="text-[10px] text-gray-500 mt-1">Gunakan nomor WA aktif yang dapat dihubungi pembeli.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kategori Utama</label>
+                    <select id="mitraCategory" class="w-full border border-gray-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:border-primary">
+                        <option value="Makanan & Minuman">Makanan & Minuman</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Kerajinan">Kerajinan</option>
+                        <option value="Jasa">Jasa</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kota / Kabupaten</label>
+                    <input type="text" id="mitraCity" required minlength="2" maxlength="100" placeholder="Contoh: Jakarta Selatan" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi Singkat (Opsional)</label>
+                    <textarea id="mitraDesc" maxlength="500" rows="3" placeholder="Ceritakan singkat tentang toko Anda..." class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary"></textarea>
+                </div>
+                <button type="submit" id="btnSubmitMitra" class="w-full bg-primary text-white font-bold py-3 rounded-md mt-4 shadow-md active:bg-primaryDark transition flex justify-center items-center gap-2">
+                    Kirim Pengajuan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div id="bottom-nav" class="fixed bottom-0 w-full max-w-[480px] bg-white border-t flex justify-around items-center py-2 z-40 pb-safe">
+        <div class="flex flex-col items-center gap-1 cursor-pointer w-1/3 nav-item active" data-action="switchView" data-payload="view-home">
+            <i data-lucide="home" class="w-6 h-6 nav-icon text-primary fill-orange-100 pointer-events-none"></i>
+            <span class="text-[10px] font-medium nav-text text-primary pointer-events-none">Beranda</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 cursor-pointer w-1/3 nav-item" data-action="handleMitraNav">
+            <i data-lucide="store" class="w-6 h-6 nav-icon text-gray-400 pointer-events-none"></i>
+            <span class="text-[10px] font-medium nav-text text-gray-500 pointer-events-none">Mitra</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 cursor-pointer w-1/3 nav-item" data-action="switchView" data-payload="view-account">
+            <i data-lucide="user" class="w-6 h-6 nav-icon text-gray-400 pointer-events-none"></i>
+            <span class="text-[10px] font-medium nav-text text-gray-500 pointer-events-none">Akun</span>
+        </div>
+    </div>
+
+
+    <div id="api-setup-overlay" class="fixed inset-0 z-[200] bg-black bg-opacity-60 hidden items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-xl p-5 shadow-xl">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 rounded-full bg-orange-100 text-primary flex items-center justify-center">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-gray-800">Sambungkan API BLANJAAN</h2>
+                    <p class="text-xs text-gray-500">Tempel URL Web App GAS yang berakhir dengan /exec.</p>
+                </div>
+            </div>
+            <input id="api-url-input" type="url" placeholder="https://script.google.com/macros/s/.../exec" class="w-full border border-gray-300 rounded-md px-3 py-3 text-sm focus:outline-none focus:border-primary">
+            <div id="api-setup-status" class="text-xs mt-2 min-h-[20px] text-gray-500"></div>
+            <div class="grid grid-cols-2 gap-2 mt-3">
+                <button id="btn-test-api" type="button" class="border border-primary text-primary rounded-md py-2.5 text-sm font-bold">Tes API</button>
+                <button id="btn-save-api" type="button" class="bg-primary text-white rounded-md py-2.5 text-sm font-bold">Simpan & Mulai</button>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-3">URL disimpan hanya di browser ini. Gunakan deployment Web App terbaru dengan akses publik.</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- TEMPLATES FOR ACCOUNT STATES (Injected via JS) -->
+<template id="tpl-auth-guest">
+    <div class="flex flex-col items-center justify-center pt-16 px-6">
+        <div class="w-20 h-20 bg-orange-50 rounded-full mb-4 flex items-center justify-center text-primary border border-orange-100">
+            <i data-lucide="shield-check" class="w-10 h-10"></i>
+        </div>
+        <h3 class="font-bold text-gray-800 text-xl">Masuk ke BLANJAAN</h3>
+        <p class="text-sm text-gray-500 mt-2 text-center mb-6">Login dengan email untuk menyimpan profil, membuka toko, atau melacak pesanan.</p>
+        
+        <form id="form-login" class="w-full space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Email Aktif</label>
+                <input type="email" id="loginEmail" required placeholder="nama@email.com" class="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-sm">
+            </div>
+            <button type="submit" id="btnReqOtp" class="w-full bg-primary text-white font-bold py-3 rounded-md shadow flex justify-center items-center gap-2 active:bg-primaryDark">
+                Kirim Kode Login
+            </button>
+        </form>
+        
+        <div class="mt-8 text-center bg-gray-100 p-3 rounded-lg border border-gray-200">
+            <p class="text-xs text-gray-500 flex items-center justify-center gap-1"><i data-lucide="info" class="w-4 h-4"></i> Info: Browsing katalog dan pesanan WhatsApp dapat dilakukan tanpa login.</p>
+        </div>
+    </div>
+</template>
+
+<template id="tpl-auth-otp">
+    <div class="flex flex-col items-center justify-center pt-12 px-6">
+        <div class="w-16 h-16 bg-blue-50 rounded-full mb-4 flex items-center justify-center text-blue-500 border border-blue-100">
+            <i data-lucide="mail" class="w-8 h-8"></i>
+        </div>
+        <h3 class="font-bold text-gray-800 text-lg text-center">Cek Email Anda</h3>
+        <p class="text-sm text-gray-500 mt-1 text-center">Kode 6 digit telah dikirim ke:<br><strong class="text-gray-800" id="otp-target-email"></strong></p>
+        
+        <form id="form-verify-otp" class="w-full mt-6 space-y-4">
+            <div>
+                <input type="text" id="otpInput" required pattern="[0-9]{6}" maxlength="6" placeholder="Masukkan 6 Digit Angka" class="w-full border border-gray-300 rounded-md px-4 py-3 text-center tracking-widest font-bold text-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" autocomplete="one-time-code">
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="rememberMe" checked class="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary">
+                <label for="rememberMe" class="text-sm text-gray-600">Ingat saya di perangkat ini</label>
+            </div>
+            <button type="submit" id="btnVerifyOtp" class="w-full bg-primary text-white font-bold py-3 rounded-md shadow flex justify-center items-center gap-2 active:bg-primaryDark">
+                Verifikasi & Masuk
+            </button>
+        </form>
+
+        <div class="mt-6 w-full text-center space-y-3">
+            <button type="button" id="btnResendOtp" class="text-sm font-semibold text-primary disabled:text-gray-400" disabled>Kirim Ulang Kode <span id="resend-timer"></span></button>
+            <div class="text-xs text-gray-400">atau</div>
+            <button type="button" data-action="cancelLogin" class="text-sm font-medium text-gray-500 underline">Ganti Email</button>
+        </div>
+    </div>
+</template>
+
+<template id="tpl-account-profile">
+    <div class="w-full">
+        <div class="bg-white p-5 border-b flex items-center gap-4">
+            <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 flex-shrink-0">
+                <i data-lucide="user" class="w-8 h-8"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-gray-800 text-lg truncate" id="prof-name"></h3>
+                <div class="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate"><i data-lucide="mail" class="w-3 h-3"></i> <span id="prof-email" class="truncate"></span></div>
+                <div class="mt-2 flex flex-wrap gap-1" id="prof-roles"></div>
+            </div>
+        </div>
+
+        <div class="p-4 space-y-4">
+            <!-- Informasi Kontak -->
+            <div class="bg-white rounded-lg shadow-sm border p-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-bold text-sm text-gray-800">Informasi Pribadi</h4>
+                    <button data-action="editProfile" class="text-xs font-bold text-primary flex items-center gap-1 active:opacity-70"><i data-lucide="edit-3" class="w-3 h-3"></i> Edit</button>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between border-b pb-1">
+                        <span class="text-gray-500">WhatsApp</span>
+                        <span class="font-medium text-gray-800" id="prof-wa">-</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-1">
+                        <span class="text-gray-500">Kota</span>
+                        <span class="font-medium text-gray-800" id="prof-city">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Toko -->
+            <div class="bg-white rounded-lg shadow-sm border p-4">
+                <h4 class="font-bold text-sm text-gray-800 mb-3">Toko Saya</h4>
+                <div id="prof-seller-status">
+                    <!-- Dinamis: Tombol daftar mitra ATAU status toko -->
+                </div>
+            </div>
+
+            <button data-action="doLogout" class="w-full border border-red-200 text-red-500 font-bold py-3 rounded-lg bg-red-50 active:bg-red-100 transition flex items-center justify-center gap-2 mt-6">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+            </button>
+        </div>
+    </div>
+</template>
+
+<template id="tpl-account-edit">
+    <div class="w-full bg-white min-h-screen">
+        <div class="sticky top-0 z-50 px-4 py-3 flex items-center border-b shadow-sm bg-white">
+            <button data-action="cancelEditProfile" class="mr-3 p-1 rounded-full active:bg-gray-100 transition">
+                <i data-lucide="arrow-left" class="w-6 h-6 text-gray-600 pointer-events-none"></i>
+            </button>
+            <h2 class="font-bold text-lg text-gray-800">Edit Profil</h2>
+        </div>
+        <form id="form-edit-profile" class="p-5 space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Email <span class="text-gray-400 font-normal">(Tidak dapat diubah)</span></label>
+                <input type="text" id="editEmail" disabled class="w-full border border-gray-200 bg-gray-50 rounded-md px-3 py-2 text-gray-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Nama Tampilan</label>
+                <input type="text" id="editName" required minlength="2" maxlength="100" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">No WhatsApp (Opsional)</label>
+                <input type="tel" id="editWa" placeholder="Contoh: 0812..." class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Kota (Opsional)</label>
+                <input type="text" id="editCity" maxlength="100" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:border-primary text-sm">
+            </div>
+            <button type="submit" id="btnSaveProfile" class="w-full bg-primary text-white font-bold py-3 rounded-md mt-6 shadow flex justify-center items-center gap-2 active:bg-primaryDark">
+                Simpan Perubahan
+            </button>
+        </form>
+    </div>
+</template>
+
+<script>
+    // === CONFIG & STATE ===
+    // DEMO HOTFIX: tempel URL Web App GAS terbaru yang berakhir /exec di sini.
+    // Setelah diisi, aplikasi tidak akan meminta URL API kepada buyer/seller lagi.
+    const DEFAULT_API_URL = "PASTE_CURRENT_GAS_EXEC_URL_HERE";
+    const API_URL_STORAGE_KEY = "blanjaan_api_url";
+
+    function normalizeApiUrl(value) {
+        const url = String(value || "").trim();
+        if (!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(url)) return "";
+        return url;
+    }
+
+    let API_URL = normalizeApiUrl(DEFAULT_API_URL) || normalizeApiUrl(localStorage.getItem(API_URL_STORAGE_KEY)) || "";
+
+    function saveApiUrl(value) {
+        const normalized = normalizeApiUrl(value);
+        if (!normalized) throw new Error("URL harus berupa URL Web App Google Apps Script yang berakhir /exec.");
+        API_URL = normalized;
+        localStorage.setItem(API_URL_STORAGE_KEY, normalized);
+        return normalized;
+    }
+
+    const FALLBACK_IMG = "https://placehold.co/300x300/f3f4f6/a1a1aa?text=BLANJAAN";
+    const SESSION_KEY = "blanjaan_session";
+
+    let liveProducts = [];
+    let liveCategories = [];
+    let sellerCache = {};
+    let orderList = []; 
+    
+    let activeCategoryId = null;
+    let activeCategoryName = null;
+    let searchQuery = "";
+    let isCheckoutProcessing = false;
+    let pendingLoginEmail = "";
+    let resendInterval = null;
+    let intentAfterLogin = null;
+
+    const authState = {
+        status: "LOADING", // LOADING, GUEST, AUTHENTICATED
+        sessionToken: null,
+        user: null,
+        seller: null
+    };
+
+    // === UTILITIES ===
+    const normalizeText = (str) => str ? String(str).trim() : "";
+    
+    const escapeHTML = (str) => {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    };
+
+    const normalizeId = (id) => id ? String(id).trim() : null;
+    const normalizeStatus = (status) => status ? String(status).trim().toUpperCase() : 'INACTIVE';
+    const parseBoolean = (val) => [true, 1, "TRUE", "YES", "1"].includes(val) || [true, 1, "TRUE", "YES", "1"].includes(String(val).trim().toUpperCase());
+
+    const normalizeWhatsAppNumber = (wa) => {
+        if (!wa) return null;
+        let cleaned = String(wa).replace(/\D/g, ''); 
+        if (cleaned.startsWith('0')) cleaned = '62' + cleaned.substring(1);
+        else if (cleaned.startsWith('8')) cleaned = '628' + cleaned.substring(1);
+        if (!cleaned.startsWith('62')) return null;
+        if (cleaned.length < 10 || cleaned.length > 15) return null;
+        return cleaned;
+    };
+
+    const validateHttpsUrl = (url) => {
+        if (!url) return null;
+        try {
+            const parsed = new URL(url);
+            return parsed.protocol === 'https:' ? parsed.href : null;
+        } catch(e) { return null; }
+    };
+
+    const formatRupiah = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka || 0);
+
+    const trackEvent = (eventName, payload = {}) => {
+        console.info(`[TRACK] ${eventName}`, payload);
+    };
+
+    function showToast(msg, isError = false) {
+        const exist = document.getElementById('global-toast');
+        if(exist) exist.remove();
+        
+        const toast = document.createElement('div');
+        toast.id = 'global-toast';
+        const bg = isError ? 'bg-red-600' : 'bg-black bg-opacity-80';
+        toast.className = `fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${bg} text-white px-4 py-3 rounded-lg text-sm z-[100] shadow-lg flex items-center gap-2 max-w-[80%] text-center`;
+        toast.innerHTML = `<i data-lucide="${isError ? 'alert-circle' : 'info'}" class="w-4 h-4 flex-shrink-0"></i> <span>${escapeHTML(msg)}</span>`;
+        document.body.appendChild(toast);
+        lucide.createIcons();
+        setTimeout(() => { if(document.body.contains(toast)) toast.remove() }, 3000);
+    }
+
+    // === API LAYER ===
+    async function fetchAPI(action, payload = null, queryParams = null) {
+        const activeApiUrl = normalizeApiUrl(API_URL);
+        if (!activeApiUrl) throw new Error("API belum disambungkan. Masukkan URL Web App GAS terlebih dahulu.");
+        let url = `${activeApiUrl}?action=${encodeURIComponent(action)}`;
+        if (queryParams && typeof queryParams === 'object') {
+            Object.entries(queryParams).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                    url += `&${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`;
+                }
+            });
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+        try {
+            const options = {
+                method: payload ? 'POST' : 'GET',
+                redirect: 'follow',
+                cache: 'no-store',
+                credentials: 'omit',
+                signal: controller.signal
+            };
+
+            if (payload) {
+                options.headers = { 'Content-Type': 'text/plain;charset=utf-8' };
+                options.body = JSON.stringify(payload);
+            }
+
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            const responseText = await response.text();
+            let json;
+            try {
+                json = JSON.parse(responseText);
+            } catch (parseError) {
+                throw new Error('Respons API bukan JSON. Periksa deployment dan izin Web App.');
+            }
+
+            if (!json || typeof json !== 'object') {
+                throw new Error('Format respons API tidak valid.');
+            }
+            if (json.success !== true) {
+                const error = new Error(json.message || 'Terjadi kesalahan server.');
+                error.code = json.code || 'API_ERROR';
+                throw error;
+            }
+            return json.data;
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                throw new Error('API tidak merespons dalam 20 detik.');
+            }
+            if (error instanceof TypeError && /Failed to fetch/i.test(error.message)) {
+                throw new Error(
+                    'API GAS tidak dapat dijangkau. Pastikan Web App sudah di-deploy sebagai versi terbaru, aksesnya publik, dan halaman dibuka dari localhost/hosting—bukan preview sandbox.'
+                );
+            }
+            console.error(`[API Error] ${action}:`, error);
+            throw error;
+        } finally {
+            clearTimeout(timeoutId);
+        }
+    }
+
+    // === AUTHENTICATION & SESSION MANAGEMENT ===
+    function getStoredToken() {
+        try {
+            let dataStr = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+            if (!dataStr) return null;
+            let data = JSON.parse(dataStr);
+            if (data.token && new Date(data.expires_at) > new Date()) return data.token;
+            clearSessionStorage();
+            return null;
+        } catch(e) {
+            clearSessionStorage();
+            return null;
+        }
+    }
+
+    function saveSession(token, expiresAt, rememberMe) {
+        const payload = JSON.stringify({ token, expires_at: expiresAt, remember_me: rememberMe });
+        if (rememberMe) {
+            localStorage.setItem(SESSION_KEY, payload);
+            sessionStorage.removeItem(SESSION_KEY);
+        } else {
+            sessionStorage.setItem(SESSION_KEY, payload);
+            localStorage.removeItem(SESSION_KEY);
+        }
+        authState.sessionToken = token;
+    }
+
+    function clearSessionStorage() {
+        sessionStorage.removeItem(SESSION_KEY);
+        localStorage.removeItem(SESSION_KEY);
+        authState.sessionToken = null;
+        authState.user = null;
+        authState.seller = null;
+        authState.status = "GUEST";
+    }
+
+    async function checkAuthSession() {
+        const token = getStoredToken();
+        if (!token) {
+            authState.status = "GUEST";
+            renderAccountState();
+            return;
+        }
+        
+        try {
+            const data = await fetchAPI("authMe", { session_token: token });
+            authState.user = data.user;
+            authState.seller = data.seller || null;
+            authState.sessionToken = token;
+            authState.status = "AUTHENTICATED";
+        } catch(e) {
+            console.warn("Session invalid/expired:", e.message);
+            clearSessionStorage();
+        }
+        renderAccountState();
+    }
+
+    function renderAccountState() {
+        const container = document.getElementById('account-state-container');
+        const headerTitle = document.getElementById('account-header-title');
+        if(!container) return;
+
+        if (authState.status === "LOADING") {
+            container.innerHTML = `<div class="pt-20 flex flex-col items-center"><i data-lucide="loader-2" class="w-8 h-8 animate-spin text-gray-400"></i></div>`;
+        } else if (authState.status === "GUEST") {
+            headerTitle.textContent = "Akun";
+            const tpl = document.getElementById('tpl-auth-guest').content.cloneNode(true);
+            container.innerHTML = '';
+            container.appendChild(tpl);
+            
+            document.getElementById('form-login').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value.trim();
+                if(!email) return;
+                const btn = document.getElementById('btnReqOtp');
+                btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Memproses...`;
+                btn.disabled = true;
+                
+                try {
+                    const res = await fetchAPI('authRequestOtp', { email });
+                    pendingLoginEmail = email;
+                    renderOtpState(res.resend_after_seconds || 60);
+                } catch(err) {
+                    showToast(err.message, true);
+                    btn.innerHTML = `Kirim Kode Login`;
+                    btn.disabled = false;
+                }
+            });
+        } else if (authState.status === "AUTHENTICATED") {
+            headerTitle.textContent = "Profil Saya";
+            const tpl = document.getElementById('tpl-account-profile').content.cloneNode(true);
+            container.innerHTML = '';
+            container.appendChild(tpl);
+            
+            document.getElementById('prof-name').textContent = authState.user.display_name || "Pengguna";
+            document.getElementById('prof-email').textContent = authState.user.email;
+            document.getElementById('prof-wa').textContent = authState.user.phone || "-";
+            document.getElementById('prof-city').textContent = authState.user.city || "-";
+            
+            let rolesHtml = '';
+            (authState.user.roles || []).forEach(r => {
+                rolesHtml += `<span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold border">${escapeHTML(r)}</span>`;
+            });
+            document.getElementById('prof-roles').innerHTML = rolesHtml;
+
+            const sellerStatusCont = document.getElementById('prof-seller-status');
+            if (authState.seller) {
+                const statusColor = authState.seller.status === 'ACTIVE' ? 'text-green-600 bg-green-50' : (authState.seller.status === 'PENDING' ? 'text-orange-600 bg-orange-50' : 'text-gray-600 bg-gray-100');
+                sellerStatusCont.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-orange-100 text-primary rounded flex items-center justify-center"><i data-lucide="store" class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="font-bold text-sm text-gray-800">${escapeHTML(authState.seller.store_name)}</div>
+                            <div class="text-[10px] font-bold px-2 py-0.5 rounded mt-1 inline-block ${statusColor}">Status: ${escapeHTML(authState.seller.status)}</div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                sellerStatusCont.innerHTML = `
+                    <div class="text-xs text-gray-500 mb-2">Anda belum memiliki toko yang terdaftar.</div>
+                    <button data-action="startMitraFlow" class="text-xs border border-primary text-primary px-4 py-2 rounded-md font-bold active:bg-orange-50 w-full flex justify-center items-center gap-1"><i data-lucide="plus-circle" class="w-4 h-4"></i> Buka Toko Sekarang</button>
+                `;
+            }
+        }
+        lucide.createIcons();
+    }
+
+    function renderOtpState(cooldownSec) {
+        const container = document.getElementById('account-state-container');
+        const tpl = document.getElementById('tpl-auth-otp').content.cloneNode(true);
+        container.innerHTML = '';
+        container.appendChild(tpl);
+        
+        document.getElementById('otp-target-email').textContent = pendingLoginEmail;
+        
+        const btnVerify = document.getElementById('btnVerifyOtp');
+        const btnResend = document.getElementById('btnResendOtp');
+        const timerSpan = document.getElementById('resend-timer');
+        
+        startResendTimer(cooldownSec, btnResend, timerSpan);
+
+        btnResend.addEventListener('click', async () => {
+            btnResend.disabled = true;
+            timerSpan.textContent = "(Memproses...)";
+            try {
+                const res = await fetchAPI('authRequestOtp', { email: pendingLoginEmail });
+                startResendTimer(res.resend_after_seconds || 60, btnResend, timerSpan);
+                showToast("Kode baru telah dikirim.");
+            } catch(err) {
+                showToast(err.message, true);
+                startResendTimer(15, btnResend, timerSpan); // Small cooldown on fail
+            }
+        });
+
+        document.getElementById('form-verify-otp').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const otp = document.getElementById('otpInput').value.trim();
+            const rememberMe = document.getElementById('rememberMe').checked;
+            if(otp.length !== 6) return;
+            
+            btnVerify.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Verifikasi...`;
+            btnVerify.disabled = true;
+
+            try {
+                const res = await fetchAPI('authVerifyOtp', { email: pendingLoginEmail, otp, remember_me: rememberMe });
+                saveSession(res.session_token, res.expires_at, rememberMe);
+                authState.user = res.user;
+                authState.status = "AUTHENTICATED";
+                
+                // Fetch seller context just in case
+                try {
+                    const sellerData = await fetchAPI("authMe", { session_token: res.session_token });
+                    authState.seller = sellerData.seller;
+                } catch(e){} // Ignore error, render profile anyway
+
+                if(intentAfterLogin) {
+                    const target = intentAfterLogin;
+                    intentAfterLogin = null;
+                    switchView(target);
+                } else {
+                    renderAccountState();
+                }
+                showToast("Berhasil masuk.");
+            } catch(err) {
+                showToast(err.message, true);
+                btnVerify.innerHTML = `Verifikasi & Masuk`;
+                btnVerify.disabled = false;
+            }
+        });
+        lucide.createIcons();
+    }
+
+    function startResendTimer(sec, btn, span) {
+        clearInterval(resendInterval);
+        let remain = sec;
+        btn.disabled = true;
+        span.textContent = `(${remain}s)`;
+        resendInterval = setInterval(() => {
+            remain--;
+            if(remain <= 0) {
+                clearInterval(resendInterval);
+                btn.disabled = false;
+                span.textContent = "";
+            } else {
+                span.textContent = `(${remain}s)`;
+            }
+        }, 1000);
+    }
+
+    function renderEditProfile() {
+        const container = document.getElementById('account-state-container');
+        document.getElementById('account-header-title').textContent = "Profil Saya"; // Hide original header roughly
+        const tpl = document.getElementById('tpl-account-edit').content.cloneNode(true);
+        container.innerHTML = '';
+        container.appendChild(tpl);
+        
+        document.getElementById('editEmail').value = authState.user.email;
+        document.getElementById('editName').value = authState.user.display_name || "";
+        document.getElementById('editWa').value = authState.user.phone || "";
+        document.getElementById('editCity').value = authState.user.city || "";
+
+        document.getElementById('form-edit-profile').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSaveProfile');
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Menyimpan...`;
+            btn.disabled = true;
+
+            const payload = {
+                session_token: authState.sessionToken,
+                display_name: document.getElementById('editName').value.trim(),
+                phone: document.getElementById('editWa').value.trim(),
+                city: document.getElementById('editCity').value.trim()
+            };
+
+            try {
+                const res = await fetchAPI('updateMyProfile', payload);
+                authState.user = res.user;
+                showToast("Profil diperbarui.");
+                renderAccountState();
+            } catch(err) {
+                showToast(err.message, true);
+                btn.innerHTML = `Simpan Perubahan`;
+                btn.disabled = false;
+            }
+        });
+        lucide.createIcons();
+    }
+
+    async function handleLogout() {
+        if(!confirm("Yakin ingin keluar?")) return;
+        const token = authState.sessionToken;
+        clearSessionStorage();
+        renderAccountState();
+        showToast("Anda telah keluar.");
+        if(token) {
+            try { await fetchAPI('authLogout', { session_token: token }); } catch(e){} // Fire & forget
+        }
+    }
+
+
+    // === CART (DAFTAR PESANAN) LOGIC ===
+    function getStockInfo(stockVal) {
+        if (stockVal === undefined || stockVal === null || stockVal === "") return { isAvailable: true, text: "Konfirmasi penjual", maxQty: Infinity };
+        const num = parseInt(stockVal, 10);
+        if (isNaN(num)) return { isAvailable: true, text: "Konfirmasi penjual", maxQty: Infinity };
+        if (num <= 0) return { isAvailable: false, text: "Habis", maxQty: 0 };
+        return { isAvailable: true, text: `Stok: ${num}`, maxQty: num };
+    }
+
+    function loadOrderListSafely() {
+        try {
+            const data = localStorage.getItem('blanjaan_orders');
+            let parsed = data ? JSON.parse(data) : [];
+            if (!Array.isArray(parsed)) throw new Error("Format invalid");
+            
+            const valid = [];
+            parsed.forEach(item => {
+                if (item && typeof item.productId === 'string' && Number.isInteger(item.qty) && item.qty > 0) {
+                    valid.push({ productId: normalizeId(item.productId), qty: Math.min(item.qty, 999), addedPrice: Number(item.addedPrice) || 0 });
+                }
+            });
+
+            // Merge dupes
+            const merged = {};
+            valid.forEach(i => {
+                if(merged[i.productId]) merged[i.productId].qty += i.qty;
+                else merged[i.productId] = i;
+            });
+            orderList = Object.values(merged);
+        } catch (e) {
+            localStorage.removeItem('blanjaan_orders');
+            orderList = [];
+        }
+    }
+
+    function saveOrderList() {
+        localStorage.setItem('blanjaan_orders', JSON.stringify(orderList));
+        updateCartBadge();
+    }
+
+    function addToOrderList(pId, silent = false) {
+        const prod = liveProducts.find(p => p.product_id === pId);
+        if(!prod) return;
+
+        const stockInfo = getStockInfo(prod.stock);
+        if(!stockInfo.isAvailable) return showToast("Stok produk habis.", true);
+
+        const existing = orderList.find(i => i.productId === pId);
+        const currentPrice = getFinalPrice(prod);
+        
+        if (existing) {
+            if (existing.qty < stockInfo.maxQty) {
+                existing.qty += 1;
+                existing.addedPrice = currentPrice;
+            } else {
+                return showToast(`Maksimal pesanan ${stockInfo.maxQty}`, true);
+            }
+        } else {
+            orderList.push({ productId: pId, qty: 1, addedPrice: currentPrice });
+            trackEvent('add_to_order_list', { productId: pId });
+        }
+        
+        saveOrderList();
+        if(!silent) showToast('Ditambahkan ke Daftar Pesanan');
+    }
+
+    let orderNowDebounce = false;
+    function orderNow(pId) {
+        if(orderNowDebounce) return;
+        orderNowDebounce = true;
+        const existing = orderList.find(i => i.productId === pId);
+        if(!existing) addToOrderList(pId, true);
+        switchView('view-cart');
+        setTimeout(() => { orderNowDebounce = false; }, 1000);
+    }
+
+    function updateCartBadge() {
+        const total = orderList.reduce((sum, item) => sum + item.qty, 0);
+        ['cart-badge-home', 'cart-badge-detail', 'cart-badge-seller'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) {
+                if (total > 0) { el.textContent = total; el.classList.remove('hidden'); }
+                else { el.classList.add('hidden'); }
+            }
+        });
+    }
+
+    function updateQty(pId, delta) {
+        const item = orderList.find(i => i.productId === pId);
+        if (!item) return;
+
+        const prod = liveProducts.find(p => p.product_id === pId);
+        const maxQty = prod ? getStockInfo(prod.stock).maxQty : Infinity;
+
+        const newQty = item.qty + delta;
+        if (newQty <= 0) {
+            orderList = orderList.filter(i => i.productId !== pId);
+            trackEvent('remove_from_order_list', { productId: pId });
+        } else if (newQty > maxQty) {
+            showToast(`Stok maksimal ${maxQty}`, true);
+        } else {
+            item.qty = newQty;
+            trackEvent('update_order_quantity', { productId: pId, qty: newQty });
+        }
+        
+        saveOrderList();
+        if (document.getElementById('view-cart').classList.contains('active')) renderOrderList();
+    }
+
+    function removeInvalidItem(pId) {
+        orderList = orderList.filter(i => i.productId !== pId);
+        saveOrderList();
+        renderOrderList();
+    }
+
+    async function renderOrderList() {
+        const container = document.getElementById('cart-content');
+        const emptyMsg = document.getElementById('empty-cart-msg');
+        
+        if (orderList.length === 0) {
+            container.innerHTML = '';
+            container.appendChild(emptyMsg);
+            emptyMsg.classList.remove('hidden');
+            return;
+        }
+        emptyMsg.classList.add('hidden');
+        container.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto mb-2"></i>Memuat Daftar Pesanan...</div>`;
+        lucide.createIcons();
+
+        const grouped = {};
+        let needsSave = false;
+
+        for (let i = 0; i < orderList.length; i++) {
+            const item = orderList[i];
+            const liveP = liveProducts.find(p => p.product_id === item.productId);
+            
+            if (!liveP) {
+                if(!grouped['INVALID']) grouped['INVALID'] = { isInvalid: true, items: [] };
+                grouped['INVALID'].items.push({...item, invalidMsg: "Produk ini sudah tidak tersedia atau dihapus.", nameDisplay: `ID: ${item.productId}`});
+                continue;
+            }
+
+            const currentPrice = getFinalPrice(liveP);
+            const priceChanged = item.addedPrice !== currentPrice;
+            if (priceChanged) { item.addedPrice = currentPrice; needsSave = true; }
+
+            const stockInfo = getStockInfo(liveP.stock);
+            if (item.qty > stockInfo.maxQty) {
+                item.qty = stockInfo.maxQty;
+                needsSave = true;
+            }
+
+            if(item.qty <= 0) {
+                if(!grouped['INVALID']) grouped['INVALID'] = { isInvalid: true, items: [] };
+                grouped['INVALID'].items.push({...item, invalidMsg: "Stok produk telah habis.", nameDisplay: liveP.product_name});
+                continue;
+            }
+
+            const sId = liveP.seller_id;
+            if (!grouped[sId]) {
+                const sInfo = await getSeller(sId);
+                grouped[sId] = { sellerInfo: sInfo || {name:"Toko Tidak Ditemukan", wa:null}, items: [], total: 0 };
+            }
+            grouped[sId].items.push({ ...item, liveData: liveP, priceChanged });
+            grouped[sId].total += (currentPrice * item.qty);
+        }
+
+        if(needsSave) saveOrderList();
+
+        let html = '';
+        if (grouped['INVALID']) {
+            html += `<div class="bg-red-50 rounded-lg p-3 mb-4 border border-red-200 shadow-sm">
+                <div class="text-red-500 font-bold text-xs mb-2 flex items-center"><i data-lucide="alert-triangle" class="w-4 h-4 mr-1"></i> Perhatian: Item Tidak Valid</div>`;
+            grouped['INVALID'].items.forEach(it => {
+                html += `
+                    <div class="flex justify-between items-center text-xs text-gray-600 mb-2 border-b border-red-100 pb-2 last:border-0 last:pb-0">
+                        <div class="pr-2"><div class="font-semibold line-clamp-1">${escapeHTML(it.nameDisplay)}</div><div class="text-[10px] text-red-400">${escapeHTML(it.invalidMsg)}</div></div>
+                        <button data-action="removeInvalid" data-payload="${escapeHTML(it.productId)}" class="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded whitespace-nowrap active:bg-red-200">Hapus</button>
+                    </div>`;
+            });
+            html += `</div>`;
+        }
+
+        for (const sId in grouped) {
+            if (sId === 'INVALID') continue;
+            const group = grouped[sId];
+            
+            html += `
+                <div class="bg-white rounded-lg shadow-sm p-3 mb-4 border border-gray-100">
+                    <div class="flex items-center gap-2 border-b pb-2 mb-3">
+                        <i data-lucide="store" class="w-4 h-4 text-gray-500"></i>
+                        <span class="font-bold text-sm text-gray-800">${escapeHTML(group.sellerInfo.name)}</span>
+                    </div>
+            `;
+
+            group.items.forEach(it => {
+                const p = it.liveData;
+                const price = getFinalPrice(p);
+                html += `
+                    <div class="flex gap-3 mb-3">
+                        <img src="${escapeHTML(p.main_image)}" class="w-16 h-16 object-cover rounded-md border" onerror="this.src='${FALLBACK_IMG}'">
+                        <div class="flex-1 flex flex-col justify-between">
+                            <h4 class="text-xs text-gray-800 line-clamp-2">${escapeHTML(p.product_name)}</h4>
+                            ${it.priceChanged ? `<span class="text-[9px] bg-yellow-100 text-yellow-700 px-1 rounded w-max mt-0.5 font-medium">Harga diperbarui otomatis</span>` : ''}
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-primary font-bold text-sm">${formatRupiah(price)}</span>
+                                <div class="flex items-center border rounded-md">
+                                    <button class="px-2 py-0.5 bg-gray-50 active:bg-gray-200 text-gray-600" data-action="updateQty" data-payload="${escapeHTML(p.product_id)}" data-payload2="-1">-</button>
+                                    <span class="px-3 py-0.5 text-xs font-medium border-x">${it.qty}</span>
+                                    <button class="px-2 py-0.5 bg-gray-50 active:bg-gray-200 text-gray-600" data-action="updateQty" data-payload="${escapeHTML(p.product_id)}" data-payload2="1">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    <div class="border-t pt-3 mt-2 flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-500">Estimasi Total Produk:</div>
+                            <div class="font-bold text-primary text-sm">${formatRupiah(group.total)}</div>
+                        </div>
+                        <button data-action="checkoutWA" data-payload="${escapeHTML(sId)}" class="w-full bg-[#25D366] text-white px-4 py-2.5 rounded-md text-xs font-bold flex items-center justify-center gap-1 active:opacity-80 transition shadow-sm checkout-btn">
+                            <i data-lucide="phone" class="w-4 h-4 pointer-events-none"></i> <span class="pointer-events-none">Pesan via WhatsApp</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+        container.appendChild(emptyMsg); 
+        lucide.createIcons();
+    }
+
+    async function checkoutWA(sId) {
+        if (isCheckoutProcessing) return;
+        
+        const btn = document.querySelector(`[data-action="checkoutWA"][data-payload="${escapeHTML(sId)}"]`);
+        const origHtml = btn ? btn.innerHTML : '';
+        if(btn) {
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Memeriksa produk...`;
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+        }
+        isCheckoutProcessing = true;
+
+        try {
+            const seller = await getSeller(sId);
+            if (!seller || !seller.wa) throw new Error("Nomor WhatsApp penjual tidak valid atau belum tersedia.");
+
+            // FETCH FRESH DATA
+            const rawProducts = await fetchAPI("products");
+            const freshProducts = normalizeProducts(rawProducts);
+            liveProducts = freshProducts; // Sync local state
+
+            let validItems = [];
+            let total = 0;
+            let needsSave = false;
+
+            orderList.forEach(item => {
+                const lp = freshProducts.find(p => p.product_id === item.productId && p.seller_id === sId);
+                if(lp) {
+                    const stock = getStockInfo(lp.stock);
+                    if(stock.maxQty > 0) {
+                        const price = getFinalPrice(lp);
+                        if (item.addedPrice !== price || item.qty > stock.maxQty) needsSave = true;
+                        
+                        const finalQty = Math.min(item.qty, stock.maxQty);
+                        item.qty = finalQty;
+                        item.addedPrice = price;
+                        validItems.push({ name: lp.product_name, qty: finalQty, price: price });
+                        total += (finalQty * price);
+                    } else { needsSave = true; } // invalid later
+                } else {
+                    const existsGlobal = freshProducts.find(p => p.product_id === item.productId);
+                    if(!existsGlobal || existsGlobal.seller_id !== sId) needsSave = true;
+                }
+            });
+            
+            if (needsSave) saveOrderList();
+            
+            if (validItems.length === 0) {
+                renderOrderList();
+                throw new Error("Produk yang dipilih tidak valid atau stok habis. Daftar telah disesuaikan.");
+            }
+
+            // Construct WA Message purely with plain text
+            let text = `Halo *${seller.name}*,\n\nSaya tertarik memesan melalui *BLANJAAN*:\n\n`;
+            
+            validItems.forEach((item, index) => {
+                text += `${index + 1}. *${item.name}*\n`;
+                text += `   Jumlah: ${item.qty}\n`;
+                text += `   Estimasi satuan: ${formatRupiah(item.price)}\n`;
+                text += `   Estimasi jumlah: ${formatRupiah(item.price * item.qty)}\n\n`;
+            });
+            
+            text += `*Estimasi total produk: ${formatRupiah(total)}*\n\n`;
+            text += `Mohon konfirmasi ketersediaan, harga akhir, pilihan varian, ongkos kirim, dan metode pembayaran.\n\n`;
+            text += `Harga pada BLANJAAN merupakan estimasi. Transaksi dan pembayaran dilakukan langsung dengan penjual.\n\nTerima kasih.`;
+
+            trackEvent('click_order_whatsapp', { sellerId: sId, item_count: validItems.length });
+            window.open(`https://wa.me/${seller.wa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+            if(needsSave) renderOrderList();
+
+        } catch (error) {
+            showToast(error.message, true);
+        } finally {
+            isCheckoutProcessing = false;
+            if(btn && btn.parentNode) {
+                btn.innerHTML = origHtml;
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                lucide.createIcons();
+            }
+        }
+    }
+
+    // === PRODUCT CATALOG & SELLERS (MIGRATED FROM STEP 1) ===
+    function normalizeProducts(rawList) {
+        if (!Array.isArray(rawList)) return [];
+        return rawList.map(p => ({
+            product_id: normalizeId(p.product_id),
+            seller_id: normalizeId(p.seller_id),
+            category_id: normalizeId(p.category_id),
+            product_category: normalizeText(p.product_category),
+            product_name: normalizeText(p.product_name),
+            price: Number(p.price) || 0,
+            promo_price: Number(p.promo_price) || 0,
+            main_image: validateHttpsUrl(p.main_image) || FALLBACK_IMG,
+            description: normalizeText(p.description),
+            specification: normalizeText(p.specification),
+            stock: p.stock,
+            views: Number(p.views) || 0,
+            featured: parseBoolean(p.featured) || parseBoolean(p.is_featured),
+            status: normalizeStatus(p.status)
+        })).filter(p => p.status === 'ACTIVE');
+    }
+
+    let sellerRequestCache = {};
+    async function getSeller(sellerId) {
+        const id = normalizeId(sellerId);
+        if (!id) return null;
+        if (sellerCache[id]) return sellerCache[id];
+        if (sellerRequestCache[id]) return sellerRequestCache[id]; // Prevent dup calls
+        
+        sellerRequestCache[id] = (async () => {
+            try {
+                const data = await fetchAPI("seller", null, { id });
+                let sData = null;
+                if (data && !Array.isArray(data)) sData = data;
+                else if (Array.isArray(data) && data.length > 0) sData = data[0];
+
+                if (sData) {
+                    sellerCache[id] = {
+                        seller_id: id,
+                        name: normalizeText(sData.store_name),
+                        location: normalizeText(sData.city || sData.district),
+                        wa: normalizeWhatsAppNumber(sData.wa),
+                        website: validateHttpsUrl(sData.website),
+                        logo: sData.logo ? validateHttpsUrl(sData.logo) : null,
+                        banner: sData.banner ? validateHttpsUrl(sData.banner) : null,
+                        description: normalizeText(sData.description)
+                    };
+                    return sellerCache[id];
+                }
+            } catch (e) {
+                console.warn("Gagal load seller", id, e);
+            } finally {
+                delete sellerRequestCache[id];
+            }
+            return null;
+        })();
+        
+        return sellerRequestCache[id];
+    }
+
+    async function loadCategories() {
+        try {
+            const data = await fetchAPI("categories");
+            const ALLOWED_ICONS = ['layout-grid', 'tag', 'coffee', 'shirt', 'gift', 'shopping-bag', 'monitor'];
+            liveCategories = data.map(c => ({
+                id: normalizeId(c.category_id),
+                name: normalizeText(c.category_name),
+                icon: ALLOWED_ICONS.includes(c.icon) ? c.icon : 'tag',
+                status: normalizeStatus(c.status)
+            })).filter(c => c.status === "ACTIVE");
+            renderCategories();
+        } catch(e) {
+            document.getElementById('category-container').innerHTML = `<div class="text-xs text-gray-500 w-full text-center py-4">Gagal memuat kategori</div>`;
+        }
+    }
+
+    function renderCategories() {
+        const container = document.getElementById('category-container');
+        if(liveCategories.length === 0) {
+            container.innerHTML = `<div class="text-xs text-gray-500 py-2">Tidak ada kategori.</div>`;
+            return;
+        }
+
+        let html = `
+            <div class="flex flex-col items-center gap-1 min-w-[60px] cursor-pointer active:opacity-70" data-action="filterCategory" data-payload="" data-payload2="">
+                <div class="w-12 h-12 ${activeCategoryId === null ? 'cat-active text-primary' : 'bg-gray-50 text-gray-500'} rounded-xl flex items-center justify-center border border-gray-200 transition">
+                    <i data-lucide="layout-grid" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[11px] ${activeCategoryId === null ? 'text-primary font-bold' : 'text-gray-700 font-medium'} text-center">Semua</span>
+            </div>
+        `;
+
+        liveCategories.forEach(cat => {
+            const isCatActive = activeCategoryId === cat.id || activeCategoryName === cat.name;
+            const activeClass = isCatActive ? 'cat-active text-primary' : 'bg-white text-gray-500';
+            const textClass = isCatActive ? 'text-primary font-bold' : 'text-gray-700 font-medium';
+            
+            html += `
+                <div class="flex flex-col items-center gap-1 min-w-[60px] cursor-pointer active:opacity-70" data-action="filterCategory" data-payload="${escapeHTML(cat.id)}" data-payload2="${escapeHTML(cat.name)}">
+                    <div class="w-12 h-12 ${activeClass} rounded-xl flex items-center justify-center border border-gray-200 transition">
+                        <i data-lucide="${escapeHTML(cat.icon)}" class="w-6 h-6"></i>
+                    </div>
+                    <span class="text-[11px] ${textClass} text-center truncate w-full px-1">${escapeHTML(cat.name)}</span>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        lucide.createIcons();
+    }
+
+    function filterCategory(catId, catName) {
+        if (activeCategoryId === catId) {
+            activeCategoryId = null; activeCategoryName = null;
+        } else {
+            activeCategoryId = catId || null; activeCategoryName = catName || null;
+        }
+        renderCategories();
+        document.getElementById('products-container').innerHTML = renderProdSkeleton(4);
+        setTimeout(() => renderProducts(), 150);
+    }
+
+    async function loadProducts() {
+        try {
+            const rawData = await fetchAPI("products");
+            liveProducts = normalizeProducts(rawData);
+            
+            const uniqueSellerIds = [...new Set(liveProducts.map(p => p.seller_id))];
+            await Promise.all(uniqueSellerIds.map(id => getSeller(id))); // Prefetch
+
+            renderProducts();
+        } catch (e) {
+            document.getElementById('products-container').innerHTML = `<div class="col-span-2 text-center text-sm text-gray-500 py-10">Gagal memuat produk: ${escapeHTML(e.message)}</div>`;
+            document.getElementById('featured-container').innerHTML = ``;
+        }
+    }
+
+    function getFinalPrice(prod) { return (prod.promo_price > 0 && prod.promo_price < prod.price) ? prod.promo_price : prod.price; }
+
+    function createProductCard(prod) {
+        const finalPrice = getFinalPrice(prod);
+        const hasPromo = finalPrice < prod.price;
+        const displayPrice = formatRupiah(finalPrice);
+        const origPrice = hasPromo ? `<span class="text-[10px] text-gray-400 line-through">${formatRupiah(prod.price)}</span>` : `<span class="text-[10px] text-transparent hidden">-</span>`;
+        const stockInfo = getStockInfo(prod.stock);
+        const opacityClass = stockInfo.isAvailable ? '' : 'opacity-50 grayscale';
+        const locationText = sellerCache[prod.seller_id] ? sellerCache[prod.seller_id].location : "Memuat...";
+
+        return `
+            <div class="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden cursor-pointer active:scale-95 transition-transform flex flex-col h-full ${opacityClass}" data-action="openProduct" data-payload="${escapeHTML(prod.product_id)}">
+                <div class="relative pb-[100%] bg-gray-100 flex-shrink-0">
+                    <img src="${escapeHTML(prod.main_image)}" class="absolute top-0 left-0 w-full h-full object-cover" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
+                    ${hasPromo && stockInfo.isAvailable ? '<div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10 shadow-sm">PROMO</div>' : ''}
+                    ${!stockInfo.isAvailable ? '<div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center z-10"><span class="bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded">HABIS</span></div>' : ''}
+                </div>
+                <div class="p-2 flex flex-col flex-1 justify-between">
+                    <div>
+                        <h4 class="text-xs text-gray-800 line-clamp-2 min-h-[32px]">${escapeHTML(prod.product_name)}</h4>
+                        <div class="mt-1 flex flex-col">
+                            <span class="text-primary font-bold text-sm">${displayPrice}</span>
+                            ${origPrice}
+                        </div>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between text-[10px] text-gray-500 pt-1 border-t border-gray-50">
+                        <div class="flex items-center truncate max-w-[65%]">
+                            <i data-lucide="map-pin" class="w-3 h-3 mr-0.5 text-gray-400 flex-shrink-0"></i>
+                            <span class="truncate" id="loc-${escapeHTML(prod.product_id)}">${escapeHTML(locationText)}</span>
+                        </div>
+                        <span class="flex-shrink-0 ml-1 font-medium ${stockInfo.isAvailable ? '' : 'text-red-500'}">${escapeHTML(stockInfo.text)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderProducts() {
+        const featCont = document.getElementById('featured-container');
+        const gridCont = document.getElementById('products-container');
+        
+        let filtered = liveProducts;
+
+        if (activeCategoryId || activeCategoryName) filtered = filtered.filter(p => p.product_category === activeCategoryName || p.category_id === activeCategoryId);
+        if (searchQuery) {
+            filtered = filtered.filter(p => {
+                const s = sellerCache[p.seller_id];
+                return p.product_name.toLowerCase().includes(searchQuery) || p.product_category.toLowerCase().includes(searchQuery) || (s && s.name.toLowerCase().includes(searchQuery));
+            });
+        }
+
+        let featHtml = ''; let gridHtml = '';
+        if(filtered.length === 0) {
+            gridCont.innerHTML = `<div class="col-span-2 text-center py-12"><i data-lucide="package-open" class="w-12 h-12 text-gray-300 mx-auto mb-2"></i><p class="text-gray-500 text-sm">Produk tidak ditemukan.</p></div>`;
+            featCont.innerHTML = '';
+            lucide.createIcons();
+            return;
+        }
+
+        filtered.forEach(prod => {
+            const card = createProductCard(prod);
+            if (prod.featured && !activeCategoryId && !searchQuery) featHtml += `<div class="min-w-[140px] max-w-[140px] h-full">${card}</div>`;
+            gridHtml += card; 
+        });
+
+        featCont.innerHTML = featHtml || `<div class="text-xs text-gray-400 py-2">Belum ada.</div>`;
+        gridCont.innerHTML = gridHtml;
+        lucide.createIcons();
+    }
+
+    async function openProductDetail(pId) {
+        const prod = liveProducts.find(p => p.product_id === pId);
+        if(!prod) return showToast("Produk tidak ditemukan atau tidak aktif.", true);
+        
+        trackEvent('product_view', { productId: pId });
+        document.getElementById('product-detail-content').innerHTML = `<div class="w-full h-80 skeleton"></div><div class="p-4 bg-white"><div class="h-6 skeleton w-1/2 mb-2"></div><div class="h-4 skeleton w-full"></div></div>`;
+        switchView('view-product');
+
+        const seller = await getSeller(prod.seller_id);
+        const finalPrice = getFinalPrice(prod);
+        const hasPromo = finalPrice < prod.price;
+        const stockInfo = getStockInfo(prod.stock);
+        
+        const sellerLogo = seller && seller.logo ? seller.logo : 'https://placehold.co/100x100/FF6B00/ffffff?text=Toko';
+        const sellerName = seller ? seller.name : 'Toko UMKM';
+        const sellerLoc = seller ? seller.location : 'Indonesia';
+
+        let websiteBtn = '';
+        if (seller && seller.website) {
+            websiteBtn = `
+                <div class="px-4 pb-4 bg-white">
+                    <button data-action="openWebsite" data-payload="${escapeHTML(seller.website)}" class="w-full border border-gray-300 text-gray-700 py-2 rounded-md text-sm font-bold flex items-center justify-center gap-2 active:bg-gray-50">
+                        <i data-lucide="globe" class="w-4 h-4"></i> Website Resmi Toko
+                    </button>
+                </div>
+            `;
+        }
+
+        const content = `
+            <div class="w-full h-80 bg-gray-100 relative">
+                <img src="${escapeHTML(prod.main_image)}" class="w-full h-full object-cover" onerror="this.src='${FALLBACK_IMG}'">
+                ${!stockInfo.isAvailable ? '<div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"><span class="bg-gray-800 text-white px-4 py-2 rounded text-lg font-bold">STOK HABIS</span></div>' : ''}
+            </div>
+            
+            <div class="p-4 bg-white mb-2 shadow-sm">
+                <div class="text-primary font-bold text-2xl mb-1">${formatRupiah(finalPrice)}</div>
+                ${hasPromo ? `<div class="text-sm text-gray-400 line-through mb-2">${formatRupiah(prod.price)}</div>` : ''}
+                <h1 class="text-gray-800 text-sm md:text-base leading-snug">${escapeHTML(prod.product_name)}</h1>
+                <div class="mt-2 text-xs text-gray-500 flex items-center">
+                    <i data-lucide="eye" class="w-4 h-4 text-blue-400 mr-1"></i> ${prod.views} Dilihat
+                    <span class="mx-2 text-gray-300">|</span>
+                    <i data-lucide="package" class="w-4 h-4 ${stockInfo.isAvailable ? 'text-green-500' : 'text-red-500'} mr-1"></i> ${escapeHTML(stockInfo.text)}
+                </div>
+            </div>
+
+            <div class="p-4 bg-white mb-2 flex items-center justify-between cursor-pointer active:bg-gray-50 transition shadow-sm" data-action="openSeller" data-payload="${escapeHTML(prod.seller_id)}">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-primary border border-orange-100 overflow-hidden">
+                        <img src="${escapeHTML(sellerLogo)}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i data-lucide="store" class="w-6 h-6" style="display: ${seller && seller.logo ? 'none' : 'block'};"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-gray-800 text-sm flex items-center gap-1">${escapeHTML(sellerName)} <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i></div>
+                        <div class="text-xs text-gray-500 flex items-center mt-0.5">
+                            <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${escapeHTML(sellerLoc)}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-[10px] bg-orange-100 text-primary px-2 py-1 rounded-md font-bold">Lihat Toko</div>
+            </div>
+            ${websiteBtn}
+            <div class="p-4 bg-white shadow-sm">
+                <h3 class="font-bold text-gray-800 text-sm mb-2">Deskripsi Produk</h3>
+                <div class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${escapeHTML(prod.description) || "Tidak ada deskripsi."}</div>
+                ${prod.specification ? `<h3 class="font-bold text-gray-800 text-sm mt-4 mb-2">Spesifikasi</h3><div class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${escapeHTML(prod.specification)}</div>` : ''}
+            </div>
+        `;
+        document.getElementById('product-detail-content').innerHTML = content;
+        
+        let bottomActions = `
+            <div data-action="chatProduct" data-payload="${escapeHTML(prod.seller_id)}" data-payload2="${escapeHTML(prod.product_name)}" class="flex-1 flex items-center justify-center border-r bg-green-50 text-green-600 cursor-pointer active:bg-green-100">
+                <i data-lucide="message-circle" class="w-6 h-6 mr-1"></i><span class="text-xs font-semibold">Chat</span>
+            </div>
+        `;
+        if (stockInfo.isAvailable) {
+            bottomActions += `
+                <div data-action="addToCart" data-payload="${escapeHTML(pId)}" class="flex-1 flex flex-col items-center justify-center bg-orange-100 text-primary cursor-pointer active:bg-orange-200">
+                    <span class="text-xs font-bold text-center px-1">Tambahkan ke Daftar</span>
+                </div>
+                <div data-action="orderNow" data-payload="${escapeHTML(pId)}" class="flex-1 flex flex-col items-center justify-center bg-primary text-white cursor-pointer active:bg-primaryDark">
+                    <span class="text-sm font-bold">Pesan Sekarang</span>
+                </div>
+            `;
+        } else {
+             bottomActions += `<div class="flex-[2] flex flex-col items-center justify-center bg-gray-200 text-gray-500 cursor-not-allowed"><span class="text-sm font-bold text-center px-1">Stok Habis</span></div>`;
+        }
+        document.getElementById('product-bottom-action').innerHTML = bottomActions;
+        lucide.createIcons();
+    }
+
+    async function chatProduct(sId, pName) {
+        const seller = await getSeller(sId);
+        if (!seller || !seller.wa) return showToast("Nomor WhatsApp penjual tidak valid atau belum tersedia.", true);
+        trackEvent('click_product_chat', { sellerId: sId, product: pName });
+        const text = `Halo *${seller.name}*, saya tertarik dengan produk *${pName}*. Apakah masih tersedia?`;
+        window.open(`https://wa.me/${seller.wa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+    }
+
+    function openWebsite(url) {
+        if(!url) return;
+        trackEvent('click_seller_website', { url });
+        window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    async function openSellerPage(sId) {
+        trackEvent('seller_view', { sellerId: sId });
+        switchView('view-seller');
+        const container = document.getElementById('seller-page-content');
+        container.innerHTML = `
+            <div class="w-full h-32 skeleton relative"><div class="absolute -bottom-6 left-4 w-16 h-16 rounded-full border-4 border-white skeleton"></div></div>
+            <div class="pt-8 px-4 bg-white pb-4 shadow-sm mb-2"><div class="h-5 skeleton w-1/2 mb-2"></div><div class="h-3 skeleton w-1/3 mb-4"></div></div>
+            <div class="px-2 py-4 grid grid-cols-2 gap-2">${renderProdSkeleton(4)}</div>
+        `;
+        window.scrollTo(0, 0);
+
+        try {
+            const seller = await getSeller(sId);
+            if(!seller) throw new Error("Not found");
+            const sellerProducts = liveProducts.filter(p => p.seller_id === sId);
+            let productsHtml = sellerProducts.length === 0 ? `<div class="col-span-2 text-center py-10 text-gray-500 text-sm">Belum ada produk.</div>` : sellerProducts.map(createProductCard).join('');
+
+            const bannerImg = seller.banner || "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=600&q=80";
+            const logoImg = seller.logo || "https://placehold.co/100x100/FF6B00/ffffff?text=Toko";
+
+            container.innerHTML = `
+                <div class="w-full h-32 bg-gray-200 relative">
+                    <img src="${escapeHTML(bannerImg)}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">
+                    <div class="absolute -bottom-6 left-4 w-16 h-16 rounded-full border-4 border-white bg-white shadow-sm overflow-hidden z-10 flex items-center justify-center">
+                        <img src="${escapeHTML(logoImg)}" class="w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i data-lucide="store" class="w-8 h-8 text-primary" style="display: ${seller.logo ? 'none' : 'block'};"></i>
+                    </div>
+                </div>
+                <div class="pt-8 px-4 bg-white pb-4 shadow-sm mb-2 relative z-0">
+                    <h1 class="font-bold text-lg text-gray-800">${escapeHTML(seller.name)}</h1>
+                    <div class="text-xs text-gray-500 flex items-center mt-1 mb-2">
+                        <i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${escapeHTML(seller.location)}
+                        <span class="mx-2 text-gray-300">|</span><i data-lucide="box" class="w-3 h-3 mr-1"></i> ${sellerProducts.length} Produk
+                    </div>
+                    <div class="text-xs text-gray-600 mb-4 line-clamp-3">${escapeHTML(seller.description) || 'Tidak ada deskripsi toko.'}</div>
+                    <div class="flex flex-wrap gap-2">
+                        ${seller.wa ? `<button data-action="chatSeller" data-payload="${escapeHTML(sId)}" class="bg-[#25D366] text-white px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 active:opacity-80 transition"><i data-lucide="message-circle" class="w-3 h-3 pointer-events-none"></i> Chat Toko</button>` : ''}
+                        ${seller.website ? `<button data-action="openWebsite" data-payload="${escapeHTML(seller.website)}" class="border border-primary text-primary px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 active:bg-orange-50 transition"><i data-lucide="globe" class="w-3 h-3 pointer-events-none"></i> Website</button>` : ''}
+                    </div>
+                </div>
+                <div class="px-2 py-3"><h3 class="font-bold text-gray-800 text-sm mb-3 px-2">Semua Produk Toko</h3><div class="grid grid-cols-2 gap-2">${productsHtml}</div></div>
+            `;
+            lucide.createIcons();
+        } catch(e) {
+            container.innerHTML = `<div class="pt-20 text-center text-gray-500">Toko tidak ditemukan.</div>`;
+        }
+    }
+
+    function renderCatSkeleton() {
+        return Array(5).fill(`
+            <div class="flex flex-col items-center gap-1 min-w-[60px]">
+                <div class="w-12 h-12 rounded-xl skeleton border border-transparent"></div>
+                <div class="w-10 h-3 skeleton mt-1"></div>
+            </div>
+        `).join('');
+    }
+
+    function renderProdSkeleton(count, isFeatured = false) {
+        let html = '';
+        for(let i=0; i<count; i++) {
+            const inner = `<div class="bg-white rounded-md shadow-sm border border-gray-100 overflow-hidden"><div class="pb-[100%] skeleton relative"></div><div class="p-2"><div class="h-4 skeleton w-full mb-1"></div><div class="h-4 skeleton w-2/3 mb-2"></div><div class="h-5 skeleton w-1/2 mb-2"></div><div class="h-3 skeleton w-1/3"></div></div></div>`;
+            html += isFeatured ? `<div class="min-w-[140px] max-w-[140px]">${inner}</div>` : inner;
+        }
+        return html;
+    }
+
+    // === MITRA (SELLER) SUBMISSION ===
+    function handleMitraNav() {
+        if(authState.status === "AUTHENTICATED") {
+            switchView('view-mitra');
+        } else {
+            intentAfterLogin = 'view-mitra';
+            switchView('view-account');
+            showToast("Silakan login atau daftar terlebih dahulu untuk membuka toko.");
+        }
+    }
+
+    async function submitMitra(e) {
+        e.preventDefault();
+        if(authState.status !== "AUTHENTICATED") return showToast("Sesi tidak valid. Harap login kembali.", true);
+
+        const storeName = document.getElementById('mitraStore').value;
+        const wa = document.getElementById('mitraWa').value;
+        const category = document.getElementById('mitraCategory').value;
+        const city = document.getElementById('mitraCity').value;
+        const desc = document.getElementById('mitraDesc').value;
+
+        const btn = document.getElementById('btnSubmitMitra');
+        const originalBtnHtml = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto text-white"></i>`;
+        btn.disabled = true;
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+
+        try {
+            const payload = {
+                session_token: authState.sessionToken,
+                store_name: storeName,
+                wa: wa,
+                category: category,
+                city: city,
+                description: desc
+            };
+
+            const res = await fetchAPI("submitSeller", payload);
+            
+            // Update auth state locally
+            authState.seller = { seller_id: res.seller_id, store_name: storeName, status: res.status };
+            
+            showToast("Pengajuan toko berhasil! Tim kami sedang meninjau data Anda.");
+            e.target.reset();
+            renderAccountState();
+            setTimeout(() => switchView('view-account'), 2000);
+
+        } catch (error) {
+            showToast(error.message, true);
+        } finally {
+            btn.innerHTML = originalBtnHtml;
+            btn.disabled = false;
+            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+            lucide.createIcons();
+        }
+    }
+
+
+    // === CORE APP & GLOBAL EVENTS ===
+    function switchView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        const target = document.getElementById(viewId);
+        if(target) target.classList.add('active');
+        
+        const bottomNav = document.getElementById('bottom-nav');
+        if (['view-product', 'view-cart', 'view-seller'].includes(viewId)) {
+            bottomNav.classList.add('hidden');
+        } else {
+            bottomNav.classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(el => {
+                const icon = el.querySelector('.nav-icon');
+                const text = el.querySelector('.nav-text');
+                icon.className = 'w-6 h-6 nav-icon text-gray-400 pointer-events-none';
+                text.className = 'text-[10px] font-medium nav-text text-gray-500 pointer-events-none';
+            });
+            let activeIndex = viewId === 'view-home' ? 0 : (viewId === 'view-mitra' ? 1 : 2);
+            const activeNav = document.querySelectorAll('.nav-item')[activeIndex];
+            if(activeNav){
+                activeNav.querySelector('.nav-icon').classList.add('text-primary', 'fill-orange-100');
+                activeNav.querySelector('.nav-icon').classList.remove('text-gray-400');
+                activeNav.querySelector('.nav-text').classList.add('text-primary');
+                activeNav.querySelector('.nav-text').classList.remove('text-gray-500');
+            }
+        }
+        if (viewId === 'view-cart') renderOrderList();
+        window.scrollTo(0, 0);
+    }
+
+    function handleGlobalClick(e) {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        
+        const action = target.getAttribute('data-action');
+        const payload = target.getAttribute('data-payload');
+        const payload2 = target.getAttribute('data-payload2');
+
+        switch(action) {
+            case 'switchView': switchView(payload); break;
+            case 'openProduct': openProductDetail(payload); break;
+            case 'filterCategory': filterCategory(payload, payload2); break;
+            case 'openSeller': openSellerPage(payload); break;
+            case 'openWebsite': openWebsite(payload); break;
+            case 'chatProduct': chatProduct(payload, payload2); break;
+            case 'chatSeller': chatProduct(payload, "Produk di Toko Anda"); break; // Helper for seller page chat
+            case 'addToCart': addToOrderList(payload); break;
+            case 'orderNow': orderNow(payload); break;
+            case 'updateQty': updateQty(payload, parseInt(payload2)); break;
+            case 'removeInvalid': removeInvalidItem(payload); break;
+            case 'checkoutWA': checkoutWA(payload); break;
+            case 'handleMitraNav': handleMitraNav(); break;
+            
+            // Auth Actions
+            case 'cancelLogin':
+                pendingLoginEmail = "";
+                renderAccountState(); // Back to guest login form
+                break;
+            case 'doLogout': handleLogout(); break;
+            case 'editProfile': renderEditProfile(); break;
+            case 'cancelEditProfile': renderAccountState(); break;
+            case 'startMitraFlow': handleMitraNav(); break;
+        }
+    }
+
+    function showApiSetup() {
+        const overlay = document.getElementById('api-setup-overlay');
+        const input = document.getElementById('api-url-input');
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        input.value = API_URL || '';
+        lucide.createIcons();
+    }
+
+    function hideApiSetup() {
+        const overlay = document.getElementById('api-setup-overlay');
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+    }
+
+    async function testApiUrlFromSetup() {
+        const input = document.getElementById('api-url-input');
+        const status = document.getElementById('api-setup-status');
+        const candidate = normalizeApiUrl(input.value);
+        if (!candidate) {
+            status.className = 'text-xs mt-2 min-h-[20px] text-red-600';
+            status.textContent = 'URL tidak valid atau tidak berakhir /exec.';
+            return false;
+        }
+
+        status.className = 'text-xs mt-2 min-h-[20px] text-gray-500';
+        status.textContent = 'Memeriksa API...';
+        try {
+            const response = await fetch(`${candidate}?action=health`, { method: 'GET', redirect: 'follow', cache: 'no-store', credentials: 'omit' });
+            const text = await response.text();
+            const json = JSON.parse(text);
+            if (!response.ok || json.success !== true || !json.data || json.data.status !== 'READY') {
+                throw new Error((json && json.message) || 'Setup backend belum lengkap.');
+            }
+            status.className = 'text-xs mt-2 min-h-[20px] text-green-600';
+            status.textContent = `API tersambung: ${json.data.ready_sheets}/${json.data.total_sheets} tab siap.`;
+            return true;
+        } catch (error) {
+            status.className = 'text-xs mt-2 min-h-[20px] text-red-600';
+            status.textContent = 'Gagal tersambung. Periksa deployment, izin akses, dan URL /exec.';
+            return false;
+        }
+    }
+
+    async function ensureApiConfigured() {
+        if (normalizeApiUrl(API_URL)) return true;
+        showApiSetup();
+        return new Promise((resolve) => {
+            const btnTest = document.getElementById('btn-test-api');
+            const btnSave = document.getElementById('btn-save-api');
+
+            btnTest.onclick = testApiUrlFromSetup;
+            btnSave.onclick = async () => {
+                const okay = await testApiUrlFromSetup();
+                if (!okay) return;
+                try {
+                    saveApiUrl(document.getElementById('api-url-input').value);
+                    hideApiSetup();
+                    resolve(true);
+                } catch (error) {
+                    document.getElementById('api-setup-status').textContent = error.message;
+                }
+            };
+        });
+    }
+
+    async function initApp() {
+        document.getElementById('app').addEventListener('click', handleGlobalClick);
+        await ensureApiConfigured();
+        document.getElementById('mitraForm').addEventListener('submit', submitMitra);
+        
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = normalizeText(e.target.value.toLowerCase());
+            document.getElementById('products-container').innerHTML = renderProdSkeleton(4);
+            document.getElementById('featured-container').innerHTML = renderProdSkeleton(2, true);
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => renderProducts(), 300);
+        });
+
+        loadOrderListSafely();
+        updateCartBadge();
+        
+        document.getElementById('category-container').innerHTML = renderCatSkeleton();
+        document.getElementById('products-container').innerHTML = renderProdSkeleton(4);
+        document.getElementById('featured-container').innerHTML = renderProdSkeleton(3, true);
+        lucide.createIcons();
+        
+        // 1. Verify Auth Session first
+        await checkAuthSession();
+        
+        // 2. Load Core Data
+        try {
+            await Promise.all([loadCategories(), loadProducts()]);
+        } catch (e) {
+            showToast("Sebagian data gagal dimuat, silakan muat ulang halaman.", true);
+        } finally {
+            // Pengaman startup: jangan pernah membiarkan semua view tersembunyi.
+            if (!document.querySelector('.view-section.active')) {
+                switchView('view-home');
+            }
+            document.getElementById('global-loader').classList.remove('active');
+            document.getElementById('global-loader').style.display = 'none';
+        }
+    }
+
+    window.addEventListener('pageshow', () => {
+        if (!document.querySelector('.view-section.active')) switchView('view-home');
+    });
+
+    document.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
