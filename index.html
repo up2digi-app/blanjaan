@@ -28,7 +28,7 @@
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .header-gradient { background: linear-gradient(-180deg, #f53d2d, #f63); }
+        .header-gradient { background: url('https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/background-header.jpg') center right/cover no-repeat, linear-gradient(-180deg, #f53d2d, #f63); }
         
         .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
@@ -53,8 +53,14 @@
         <!-- HEADER -->
         <div class="header-gradient sticky top-0 z-40 shadow-md">
             <!-- Top Bar -->
-            <div class="px-3 md:px-5 py-1.5 flex justify-between items-center text-white text-[10px] md:text-xs">
-                <div class="flex items-center gap-2 opacity-90 hidden sm:flex"><span class="font-medium">Ikuti UMKM Lokal & Temukan Diskon Spesial</span></div>
+            <div class="px-3 md:px-5 py-2 flex justify-between items-center text-white text-[10px] md:text-xs">
+                <div class="flex items-center hidden sm:flex relative pb-1">
+                    <span class="font-bold text-sm md:text-base tracking-wide drop-shadow-sm">Belanja Hemat, Dukung UMKM</span>
+                    <!-- Efek garis lengkung kuning -->
+                    <svg class="absolute bottom-0 right-0 w-[65%] h-[6px] text-yellow-400 drop-shadow-sm" viewBox="0 0 100 10" preserveAspectRatio="none">
+                        <path d="M 2 8 Q 40 2 98 4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
                 <div class="flex items-center gap-3 md:gap-4 font-medium ml-auto">
                     <span class="hover:text-gray-200 cursor-pointer transition" data-action="switchView" data-payload="view-account">Daftar</span>
                     <span class="border-l border-white/40 pl-3 hover:text-gray-200 cursor-pointer transition" data-action="switchView" data-payload="view-account">Login</span>
@@ -131,6 +137,65 @@
             <div class="flex overflow-x-auto no-scrollbar gap-3 md:gap-5 pb-2" id="nearby-container"></div>
         </div>
 
+        <!-- URUTAN KHUSUS: SHOPPERTAINMENT (VIDEO PROMO) -->
+        <div class="bg-white p-3 md:p-6 mb-2 border-y border-gray-100">
+            <h3 class="font-bold text-gray-800 text-lg md:text-xl mb-3 md:mb-4 px-1 md:px-2 flex items-center gap-2">
+                <i data-lucide="play-circle" class="w-5 h-5 text-red-500 fill-red-50"></i> BlanjaanPlay
+            </h3>
+            <div class="flex overflow-x-auto no-scrollbar gap-3 md:gap-4 pb-2 px-1" id="video-promo-container">
+                <!-- Video 1 -->
+                <div class="w-[125px] sm:w-[140px] md:w-[160px] lg:w-[180px] aspect-[9/16] flex-shrink-0 relative rounded-xl overflow-hidden shadow-sm bg-gray-900 group cursor-pointer" data-action="toggleVideoMute" data-payload="vid1">
+                    <video id="vid1" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" autoplay muted loop playsinline class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition"></video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
+                        <div class="font-bold text-xs line-clamp-2 leading-tight drop-shadow-md">Promo Diskon Pakaian Pria Kekinian</div>
+                        <div class="text-[9px] text-gray-300 mt-1 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3"></i> Toko Jaya</div>
+                    </div>
+                    <button class="absolute top-2 right-2 p-1.5 bg-black/40 rounded-full text-white pointer-events-none transition" id="btn-mute-vid1"><i data-lucide="volume-x" class="w-4 h-4"></i></button>
+                </div>
+                <!-- Video 2 -->
+                <div class="w-[125px] sm:w-[140px] md:w-[160px] lg:w-[180px] aspect-[9/16] flex-shrink-0 relative rounded-xl overflow-hidden shadow-sm bg-gray-900 group cursor-pointer" data-action="toggleVideoMute" data-payload="vid2">
+                    <video id="vid2" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4" autoplay muted loop playsinline class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition"></video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
+                        <div class="font-bold text-xs line-clamp-2 leading-tight drop-shadow-md">Review Cemilan Viral Terbaru</div>
+                        <div class="text-[9px] text-gray-300 mt-1 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3"></i> Snack Nusantara</div>
+                    </div>
+                    <button class="absolute top-2 right-2 p-1.5 bg-black/40 rounded-full text-white pointer-events-none transition" id="btn-mute-vid2"><i data-lucide="volume-x" class="w-4 h-4"></i></button>
+                </div>
+                <!-- Video 3 -->
+                <div class="w-[125px] sm:w-[140px] md:w-[160px] lg:w-[180px] aspect-[9/16] flex-shrink-0 relative rounded-xl overflow-hidden shadow-sm bg-gray-900 group cursor-pointer" data-action="toggleVideoMute" data-payload="vid3">
+                    <video id="vid3" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" autoplay muted loop playsinline class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition"></video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
+                        <div class="font-bold text-xs line-clamp-2 leading-tight drop-shadow-md">Diskon Gadget & Elektronik 50%</div>
+                        <div class="text-[9px] text-gray-300 mt-1 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3"></i> Techindo</div>
+                    </div>
+                    <button class="absolute top-2 right-2 p-1.5 bg-black/40 rounded-full text-white pointer-events-none transition" id="btn-mute-vid3"><i data-lucide="volume-x" class="w-4 h-4"></i></button>
+                </div>
+                <!-- Video 4 -->
+                <div class="w-[125px] sm:w-[140px] md:w-[160px] lg:w-[180px] aspect-[9/16] flex-shrink-0 relative rounded-xl overflow-hidden shadow-sm bg-gray-900 group cursor-pointer" data-action="toggleVideoMute" data-payload="vid4">
+                    <video id="vid4" src="https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4" autoplay muted loop playsinline class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition"></video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
+                        <div class="font-bold text-xs line-clamp-2 leading-tight drop-shadow-md">Sepatu Original Local Pride</div>
+                        <div class="text-[9px] text-gray-300 mt-1 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3"></i> Shoes Store</div>
+                    </div>
+                    <button class="absolute top-2 right-2 p-1.5 bg-black/40 rounded-full text-white pointer-events-none transition" id="btn-mute-vid4"><i data-lucide="volume-x" class="w-4 h-4"></i></button>
+                </div>
+                <!-- Video 5 -->
+                <div class="w-[125px] sm:w-[140px] md:w-[160px] lg:w-[180px] aspect-[9/16] flex-shrink-0 relative rounded-xl overflow-hidden shadow-sm bg-gray-900 group cursor-pointer" data-action="toggleVideoMute" data-payload="vid5">
+                    <video id="vid5" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4" autoplay muted loop playsinline class="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition"></video>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
+                    <div class="absolute bottom-3 left-3 right-3 text-white pointer-events-none">
+                        <div class="font-bold text-xs line-clamp-2 leading-tight drop-shadow-md">Obral Kosmetik & Skincare</div>
+                        <div class="text-[9px] text-gray-300 mt-1 flex items-center gap-1"><i data-lucide="store" class="w-3 h-3"></i> GlowUp ID</div>
+                    </div>
+                    <button class="absolute top-2 right-2 p-1.5 bg-black/40 rounded-full text-white pointer-events-none transition" id="btn-mute-vid5"><i data-lucide="volume-x" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+        </div>
+
         <!-- URUTAN 4: REKOMENDASI -->
         <div class="px-2 md:px-6 py-3 md:py-6 bg-white min-h-[50vh]">
             <h3 class="font-bold text-gray-800 text-lg md:text-xl mb-2 px-2">Rekomendasi</h3>
@@ -176,6 +241,17 @@
             </div>
         </div>
         <div class="px-2 md:px-6 py-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4" id="search-results-container"></div>
+    </div>
+
+    <!-- VIEW: CATEGORY PAGE -->
+    <div id="view-category" class="view-section bg-gray-50 min-h-screen pb-24">
+        <div class="bg-white sticky top-0 z-50 px-4 py-3 flex items-center gap-3 border-b shadow-sm">
+            <button data-action="switchView" data-payload="view-home" class="p-1 rounded-full active:bg-gray-100"><i data-lucide="arrow-left" class="w-6 h-6 text-gray-600 pointer-events-none"></i></button>
+            <div class="flex-1">
+                <h2 class="font-bold text-base text-gray-800" id="category-page-title">Kategori</h2>
+            </div>
+        </div>
+        <div class="px-2 md:px-6 py-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 md:gap-4" id="category-page-products-container"></div>
     </div>
 
     <!-- VIEW: PRODUCT DETAIL -->
@@ -495,7 +571,7 @@
 </template>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzX7Tn0nHVMQQhVUmtDo3K26zJYkH66-_UX58PviOD6_c0o7CuovqxxfCGHjzJusKI7Rw/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbyC2wU_KzKjJk8Cnhg_fP2a4Jk3z9_l4_P9-Q7mXkLzZqT3zGv4j7m4kZ_L-P9Q7mXk/exec"; 
     const FALLBACK_IMG = "https://placehold.co/300x300/f3f4f6/a1a1aa?text=BLANJAAN";
     const SESSION_KEY = "blanjaan_session";
 
@@ -516,7 +592,13 @@
     let sortHargaAsc = true;
     let activeRatingSeller = null;
     let activeRatingStars = 0;
-    let currentSelectedVariant = null;
+
+    // Global variables untuk fitur Infinite Scroll & Pagination (Tahap 2)
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    let hasMoreData = true;
+    let isLoadingMore = false;
+    let currentFilteredProducts = [];
 
     const authState = { status: "LOADING", sessionToken: null, user: null, seller: null };
 
@@ -528,11 +610,11 @@
         { category_id: "C5", category_name: "Kesehatan", icon: "heart", status: "ACTIVE" }
     ];
     const MOCK_PRODUCTS = [
-        { product_id: "P1", seller_id: "S1", category_id: "C1", product_category: "Makanan", product_name: "Kopi Gula Aren Asli (Biji Pilihan)", price: 75000, promo_price: 55000, main_image: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?w=500&q=80", description: "Kopi aren segar asli.", stock: 10, views: 250, featured: true, status: "ACTIVE", variants: ["Normal", "Less Sugar", "Extra Shot"] },
-        { product_id: "P2", seller_id: "S2", category_id: "C2", product_category: "Fashion", product_name: "Kemeja Flanel Pria Premium", price: 150000, promo_price: 0, main_image: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=500&q=80", description: "Kemeja flanel tebal.", stock: 5, views: 120, featured: false, status: "ACTIVE", variants: ["Ukuran M", "Ukuran L", "Ukuran XL"] },
-        { product_id: "P3", seller_id: "S1", category_id: "C1", product_category: "Makanan", product_name: "Keripik Singkong Pedas Mantap", price: 15000, promo_price: 12000, main_image: "https://images.unsplash.com/photo-1621852004158-f3bc188ace2d?w=500&q=80", description: "Level 10.", stock: 100, views: 500, featured: true, status: "ACTIVE" },
-        { product_id: "P4", seller_id: "S3", category_id: "C4", product_category: "Kerajinan", product_name: "Tas Anyaman Bambu Tradisional", price: 85000, promo_price: 0, main_image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&q=80", description: "Asli pengrajin lokal.", stock: 2, views: 80, featured: true, status: "ACTIVE" },
-        { product_id: "P5", seller_id: "S2", category_id: "C2", product_category: "Fashion", product_name: "Kaos Polos Katun Combed 30s", price: 45000, promo_price: 35000, main_image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80", description: "Katun combed 30s.", stock: 50, views: 300, featured: false, status: "ACTIVE" }
+        { product_id: "P1", seller_id: "S1", category_id: "C1", product_category: "Makanan", product_name: "Kopi Gula Aren Asli (Biji Pilihan)", price: 75000, promo_price: 55000, main_image: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?w=500&q=80", description: "Kopi aren segar asli.", stock: 10, views: 250, featured: true, status: "ACTIVE", upload_date: new Date(Date.now() - 2 * 86400000).toISOString() },
+        { product_id: "P2", seller_id: "S2", category_id: "C2", product_category: "Fashion", product_name: "Kemeja Flanel Pria Premium", price: 150000, promo_price: 0, main_image: "https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=500&q=80", description: "Kemeja flanel tebal.", stock: 5, views: 120, featured: false, status: "ACTIVE", upload_date: new Date(Date.now() - 5 * 86400000).toISOString() },
+        { product_id: "P3", seller_id: "S1", category_id: "C1", product_category: "Makanan", product_name: "Keripik Singkong Pedas Mantap", price: 15000, promo_price: 12000, main_image: "https://images.unsplash.com/photo-1621852004158-f3bc188ace2d?w=500&q=80", description: "Level 10.", stock: 100, views: 500, featured: true, status: "ACTIVE", upload_date: new Date(Date.now() - 10 * 86400000).toISOString() },
+        { product_id: "P4", seller_id: "S3", category_id: "C4", product_category: "Kerajinan", product_name: "Tas Anyaman Bambu Tradisional", price: 85000, promo_price: 0, main_image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=500&q=80", description: "Asli pengrajin lokal.", stock: 2, views: 80, featured: true, status: "ACTIVE", upload_date: new Date(Date.now() - 20 * 86400000).toISOString() },
+        { product_id: "P5", seller_id: "S2", category_id: "C2", product_category: "Fashion", product_name: "Kaos Polos Katun Combed 30s", price: 45000, promo_price: 35000, main_image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80", description: "Katun combed 30s.", stock: 50, views: 300, featured: false, status: "ACTIVE", upload_date: new Date(Date.now() - 30 * 86400000).toISOString() }
     ];
     const MOCK_SELLERS = [
         { seller_id: "S1", store_name: "Toko Suka Maju", city: "Jakarta Selatan", wa: "628123456789", status: "ACTIVE" },
@@ -559,24 +641,39 @@
         setTimeout(() => { if(document.body.contains(toast)) toast.remove() }, 3000);
     }
 
+    const API_TIMEOUT_MS = 12000;
+    const FRONTEND_BACKEND_EXPECTED_VERSION = '1.2.0';
+    let authCheckGeneration = 0;
+
     async function fetchAPI(action, payload = null) {
+        let timer = null;
         try {
-            let url = `${API_URL}?action=${encodeURIComponent(action)}`;
-            let options = payload ? { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) } : { method: 'GET' };
+            const url = `${API_URL}?action=${encodeURIComponent(action)}`;
+            const controller = new AbortController();
+            timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+            const options = payload
+                ? { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), signal: controller.signal }
+                : { method: 'GET', signal: controller.signal };
+
             const res = await fetch(url, options);
+            const raw = await res.text();
+            let json = null;
+            try { json = JSON.parse(raw); } catch (_) {}
             if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-            const json = await res.json();
-            if (json.success !== true) throw new Error(json.message || "Gagal mengambil data.");
+            if (!json || json.success !== true) throw new Error((json && json.message) || 'Gagal mengambil data.');
             return json.data;
         } catch (error) {
-            console.warn(`[API Gagal] Menggunakan Data Cadangan untuk aksi: ${action}`);
-            if (action === "categories") return MOCK_CATEGORIES;
-            if (action === "products") return MOCK_PRODUCTS;
-            if (action === "seller") {
+            const reason = error && error.name === 'AbortError' ? `Timeout ${API_TIMEOUT_MS / 1000} detik.` : (error.message || String(error));
+            console.warn(`[API Gagal] ${action}: ${reason}`);
+            if (action === 'categories') return MOCK_CATEGORIES;
+            if (action === 'products') return MOCK_PRODUCTS;
+            if (action === 'seller') {
                 let id = null; if(payload && payload.id) id = payload.id; else if (typeof payload === 'string' && payload.includes('id=')) { const match = payload.match(/id=([^&]*)/); id = match ? match[1] : null; }
                 const found = MOCK_SELLERS.filter(s => s.seller_id === id); return found.length > 0 ? found : [MOCK_SELLERS[0]];
             }
-            throw error;
+            throw new Error(reason);
+        } finally {
+            if (timer) clearTimeout(timer);
         }
     }
 
@@ -585,16 +682,33 @@
     function clearSessionStorage() { localStorage.removeItem(SESSION_KEY); sessionStorage.removeItem(SESSION_KEY); authState.user = null; authState.seller = null; authState.sessionToken = null; authState.status = "GUEST"; }
 
     async function checkAuthSession() {
+        const generation = ++authCheckGeneration;
         const token = getStoredToken();
-        if (!token) { authState.status = "GUEST"; renderAccountState(); return; }
-        try { 
-            const data = await fetchAPI("authMe", { session_token: token }); 
-            authState.user = data.user; 
-            authState.seller = data.seller || null; 
-            authState.sessionToken = token; 
-            authState.status = "AUTHENTICATED"; 
-        } catch(e) { clearSessionStorage(); }
+        if (!token) {
+            authState.status = "GUEST";
+            renderAccountState();
+            return;
+        }
+        try {
+            const data = await fetchAPI("authMe", { session_token: token });
+            if (generation !== authCheckGeneration || authState.status === 'AUTHENTICATED') return;
+            authState.user = data.user;
+            authState.seller = data.seller || null;
+            authState.sessionToken = token;
+            authState.status = "AUTHENTICATED";
+        } catch(e) {
+            if (generation !== authCheckGeneration || authState.status === 'AUTHENTICATED') return;
+            const msg = String(e?.message || '');
+            if (/sesi (tidak ditemukan|sudah tidak aktif|sudah kedaluwarsa)|sesi tidak valid/i.test(msg)) clearSessionStorage();
+            else authState.status = 'GUEST';
+        }
         renderAccountState();
+    }
+
+    async function validateCurrentSession() {
+        const token = authState.sessionToken;
+        if (!token) throw new Error('Sesi tidak valid. Silakan login kembali.');
+        return fetchAPI('authValidateSession', { session_token: token });
     }
 
     function renderAccountState() {
@@ -636,7 +750,31 @@
         const btnVerify = document.getElementById('btnVerifyOtp'), btnResend = document.getElementById('btnResendOtp'), timerSpan = document.getElementById('resend-timer');
         startResendTimer(cooldownSec, btnResend, timerSpan);
         btnResend.addEventListener('click', async () => { btnResend.disabled = true; timerSpan.textContent = "(Memproses...)"; try { const res = await fetchAPI('authRequestOtp', { email: pendingLoginEmail }); startResendTimer(res.resend_after_seconds || 60, btnResend, timerSpan); showToast("Kode baru telah dikirim."); } catch(err) { showToast(err.message, true); startResendTimer(15, btnResend, timerSpan); } });
-        document.getElementById('form-verify-otp').addEventListener('submit', async (e) => { e.preventDefault(); const otp = document.getElementById('otpInput').value.trim(); const rememberMe = document.getElementById('rememberMe').checked; if(otp.length !== 6) return; btnVerify.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Verifikasi...`; btnVerify.disabled = true; try { const res = await fetchAPI('authVerifyOtp', { email: pendingLoginEmail, otp, remember_me: rememberMe }); saveSession(res.session_token, res.expires_at, rememberMe); authState.user = res.user; authState.status = "AUTHENTICATED"; try { const sellerData = await fetchAPI("authMe", { session_token: res.session_token }); authState.seller = sellerData.seller; } catch(e){} if(intentAfterLogin) { const target = intentAfterLogin; intentAfterLogin = null; switchView(target); } else renderAccountState(); showToast("Berhasil masuk."); } catch(err) { showToast(err.message, true); btnVerify.innerHTML = `Verifikasi & Masuk`; btnVerify.disabled = false; } }); lucide.createIcons();
+        document.getElementById('form-verify-otp').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const otp = document.getElementById('otpInput').value.trim();
+            const rememberMe = document.getElementById('rememberMe').checked;
+            if(otp.length !== 6) return;
+            btnVerify.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Verifikasi...`;
+            btnVerify.disabled = true;
+            try {
+                const res = await fetchAPI('authVerifyOtp', { email: pendingLoginEmail, otp, remember_me: rememberMe });
+                if (!res || !res.session_token || !res.user) throw new Error('Login berhasil tetapi sesi tidak diterima oleh aplikasi.');
+                saveSession(res.session_token, res.expires_at, rememberMe);
+                authState.user = res.user;
+                authState.seller = res.seller || null;
+                authCheckGeneration++;
+                authState.sessionToken = res.session_token;
+                authState.status = 'AUTHENTICATED';
+                if(intentAfterLogin) { const target = intentAfterLogin; intentAfterLogin = null; switchView(target); }
+                else renderAccountState();
+                showToast('Berhasil masuk.');
+            } catch(err) {
+                showToast(err.message, true);
+                btnVerify.innerHTML = `Verifikasi & Masuk`;
+                btnVerify.disabled = false;
+            }
+        }); lucide.createIcons();
     }
     
     function startResendTimer(sec, btn, span) { clearInterval(resendInterval); let remain = sec; btn.disabled = true; span.textContent = `(${remain}s)`; resendInterval = setInterval(() => { remain--; if(remain <= 0) { clearInterval(resendInterval); btn.disabled = false; span.textContent = ""; } else span.textContent = `(${remain}s)`; }, 1000); }
@@ -664,7 +802,8 @@
                 address: document.getElementById('editAddress').value.trim()
             }; 
             
-            try { 
+            try {
+                await validateCurrentSession();
                 const res = await fetchAPI('updateMyProfile', payload); 
                 authState.user = res.user; 
                 if (payload.address) authState.user.address = payload.address; 
@@ -783,7 +922,7 @@
         finally { isCheckoutProcessing = false; btn.innerHTML = origHtml; btn.classList.remove('opacity-70', 'cursor-not-allowed'); btn.disabled = false; lucide.createIcons(); }
     }
 
-    function normalizeProducts(rawList) { if (!Array.isArray(rawList)) return []; return rawList.map(p => ({ product_id: normalizeId(p.product_id), seller_id: normalizeId(p.seller_id), category_id: normalizeId(p.category_id), product_category: normalizeText(p.product_category), product_name: normalizeText(p.product_name), price: Number(p.price) || 0, promo_price: Number(p.promo_price) || 0, main_image: validateHttpsUrl(p.main_image) || p.main_image || FALLBACK_IMG, description: normalizeText(p.description), specification: normalizeText(p.specification), stock: p.stock, views: Number(p.views) || 0, featured: parseBoolean(p.featured) || parseBoolean(p.is_featured), status: normalizeStatus(p.status), variants: Array.isArray(p.variants) ? p.variants : null })).filter(p => p.status === 'ACTIVE'); }
+    function normalizeProducts(rawList) { if (!Array.isArray(rawList)) return []; return rawList.map(p => ({ product_id: normalizeId(p.product_id), seller_id: normalizeId(p.seller_id), category_id: normalizeId(p.category_id), product_category: normalizeText(p.product_category), product_name: normalizeText(p.product_name), price: Number(p.price) || 0, promo_price: Number(p.promo_price) || 0, main_image: validateHttpsUrl(p.main_image) || p.main_image || FALLBACK_IMG, description: normalizeText(p.description), specification: normalizeText(p.specification), stock: p.stock, views: Number(p.views) || 0, featured: parseBoolean(p.featured) || parseBoolean(p.is_featured), status: normalizeStatus(p.status), upload_date: p.upload_date || new Date(0).toISOString() })).filter(p => p.status === 'ACTIVE'); }
     
     let sellerRequestCache = {};
     async function getSeller(sellerId) {
@@ -797,14 +936,48 @@
     function renderCategories() {
         const container = document.getElementById('category-container'); if(liveCategories.length === 0) { container.innerHTML = `<div class="text-xs text-gray-500 py-2">Tidak ada kategori.</div>`; return; }
         const catImages = { "Semua": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/semua.jpg", "Makanan": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/makanan-minuman.jpg", "Makanan & Minuman": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/makanan-minuman.jpg", "Fashion": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/fashion.jpg", "Elektronik": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/makanan-minuman.jpg", "Kerajinan": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/kerajinan-souvenir.jpg", "Kesehatan": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/kecantikan-kesehatan.jpg" };
-        let html = `<div class="flex flex-col items-center gap-1 min-w-[60px] md:min-w-[80px] cursor-pointer hover:opacity-80 transition" data-action="filterCategory" data-payload="" data-payload2=""><div class="w-12 h-12 md:w-16 md:h-16 ${activeCategoryId === null ? 'border-2 border-primary shadow-sm' : 'bg-white border border-gray-200'} rounded-2xl flex items-center justify-center transition overflow-hidden"><img src="${catImages['Semua']}" class="w-full h-full object-cover"></div><span class="text-[11px] md:text-sm ${activeCategoryId === null ? 'text-primary font-bold' : 'text-gray-700 font-medium'} text-center mt-1">Semua</span></div>`;
+        let html = `<div class="flex flex-col items-center gap-1 min-w-[60px] md:min-w-[80px] cursor-pointer hover:opacity-80 transition" data-action="filterCategory" data-payload="" data-payload2=""><div class="w-12 h-12 md:w-16 md:h-16 ${activeCategoryId === null ? 'border-2 border-primary shadow-sm' : 'bg-white border border-gray-200'} rounded-2xl flex items-center justify-center transition overflow-hidden"><img src="${catImages['Semua']}" class="w-full h-full object-cover"></div><span class="text-[11px] md:text-sm ${activeCategoryId === null ? 'text-primary font-bold' : 'text-gray-700 font-medium'} text-center mt-1 px-1 w-full truncate">Beranda/Lainnya</span></div>`;
         liveCategories.forEach(cat => { const isAct = activeCategoryId === cat.id || activeCategoryName === cat.name; let imgSrc = catImages[cat.name] || `https://placehold.co/100x100/f3f4f6/a1a1aa?text=${encodeURIComponent(cat.name.substring(0,3))}`; html += `<div class="flex flex-col items-center gap-1 min-w-[60px] md:min-w-[80px] cursor-pointer hover:opacity-80 transition" data-action="filterCategory" data-payload="${escapeHTML(cat.id)}" data-payload2="${escapeHTML(cat.name)}"><div class="w-12 h-12 md:w-16 md:h-16 ${isAct ? 'border-2 border-primary shadow-sm' : 'bg-white border border-gray-200'} rounded-2xl flex items-center justify-center transition overflow-hidden"><img src="${escapeHTML(imgSrc)}" class="w-full h-full object-cover"></div><span class="text-[11px] md:text-sm ${isAct ? 'text-primary font-bold' : 'text-gray-700 font-medium'} text-center truncate w-full px-1 mt-1">${escapeHTML(cat.name)}</span></div>`; });
         container.innerHTML = html;
     }
     
-    function filterCategory(catId, catName) { if (activeCategoryId === catId) { activeCategoryId = null; activeCategoryName = null; } else { activeCategoryId = catId || null; activeCategoryName = catName || null; } renderCategories(); document.getElementById('products-container').innerHTML = renderProdSkeleton(4); setTimeout(() => renderProducts(true), 150); }
+    function filterCategory(catId, catName) { 
+        if (!catId && !catName) {
+            // Jika klik "Semua", kembalikan ke Home dan reset status
+            activeCategoryId = null; activeCategoryName = null;
+            switchView('view-home');
+            renderCategories();
+            document.getElementById('products-container').innerHTML = renderProdSkeleton(4); 
+            setTimeout(() => renderProducts(), 150); 
+            return;
+        }
+        
+        // Pindah ke Halaman Kategori
+        document.getElementById('category-page-title').textContent = "Kategori: " + catName;
+        switchView('view-category');
+        
+        // Render efek loading
+        const container = document.getElementById('category-page-products-container');
+        container.innerHTML = renderProdSkeleton(8);
+        
+        // Render Data Produk Khusus Kategori
+        setTimeout(() => {
+            const filtered = liveProducts.filter(p => p.category_id === catId || p.product_category === catName);
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-20"><i data-lucide="package-open" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p class="text-gray-500 text-sm">Belum ada produk di kategori ini.</p><button data-action="switchView" data-payload="view-home" class="mt-4 bg-primary text-white px-6 py-2 rounded-full text-xs font-bold shadow-sm">Kembali</button></div>`;
+            } else {
+                let html = ''; filtered.forEach(p => html += createProductCard(p)); container.innerHTML = html;
+            }
+            lucide.createIcons();
+        }, 400);
+    }
     
     function handleSetFilter(type) {
+        if (type === 'terdekat') {
+            if (authState.status !== 'AUTHENTICATED' || !authState.user || !authState.user.city) {
+                showToast("Silakan login dan lengkapi kota di Profil Anda terlebih dahulu.", true);
+            }
+        }
         if(type === 'harga' && activeFilter === 'harga') sortHargaAsc = !sortHargaAsc; else activeFilter = type;
         document.querySelectorAll('.filter-btn').forEach(btn => {
             const p = btn.getAttribute('data-payload'); const base = "filter-btn text-xs md:text-sm px-4 py-2 rounded-full border whitespace-nowrap transition shadow-sm ";
@@ -829,9 +1002,9 @@
     function getFinalPrice(prod) { return (prod.promo_price > 0 && prod.promo_price < prod.price) ? prod.promo_price : prod.price; }
     
     function createProductCard(prod) {
-        const finalPrice = getFinalPrice(prod); const hasPromo = finalPrice < prod.price; const origPrice = hasPromo ? `<span class="text-[10px] md:text-xs text-gray-400 line-through">${formatRupiah(prod.price)}</span>` : `<span class="text-[10px] text-transparent hidden">-</span>`;
+        const finalPrice = getFinalPrice(prod); const hasPromo = finalPrice < prod.price; const origPrice = hasPromo ? `<span class="text-[10px] md:text-xs text-gray-400 line-through block">${formatRupiah(prod.price)}</span>` : `<span class="text-[10px] md:text-xs opacity-0 block select-none pointer-events-none">-</span>`;
         const stockInfo = getStockInfo(prod.stock); const opacityClass = stockInfo.isAvailable ? '' : 'opacity-50 grayscale'; const locationText = sellerCache[prod.seller_id] ? sellerCache[prod.seller_id].location : "Memuat...";
-        return `<div class="bg-white rounded-md md:rounded-lg shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition flex flex-col h-full ${opacityClass}" data-action="openProduct" data-payload="${escapeHTML(prod.product_id)}"><div class="relative pb-[100%] bg-gray-100 flex-shrink-0"><img src="${escapeHTML(prod.main_image)}" class="absolute top-0 left-0 w-full h-full object-cover" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">${hasPromo && stockInfo.isAvailable ? '<div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-bl-lg z-10 shadow-sm">PROMO</div>' : ''}${!stockInfo.isAvailable ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center z-10"><span class="bg-gray-800 text-white text-xs md:text-sm font-bold px-3 py-1 rounded">HABIS</span></div>' : ''}</div><div class="p-2 md:p-3 flex flex-col flex-1 justify-between"><div><h4 class="text-xs md:text-sm text-gray-800 line-clamp-2 min-h-[32px] md:min-h-[40px] leading-relaxed">${escapeHTML(prod.product_name)}</h4><div class="mt-1 flex flex-col"><span class="text-primary font-bold text-sm md:text-base">${formatRupiah(finalPrice)}</span>${origPrice}</div></div><div class="mt-2 flex items-center justify-between text-[10px] md:text-xs text-gray-500 pt-1.5 border-t border-gray-50"><div class="flex items-center truncate max-w-[60%]"><i data-lucide="map-pin" class="w-3 h-3 mr-0.5 text-gray-400 flex-shrink-0"></i><span class="truncate">${escapeHTML(locationText)}</span></div><span class="flex-shrink-0 ml-1 font-medium ${stockInfo.isAvailable ? '' : 'text-red-500'}">${escapeHTML(stockInfo.text)}</span></div></div></div>`;
+        return `<div class="bg-white rounded-md md:rounded-lg shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition flex flex-col h-full ${opacityClass}" data-action="openProduct" data-payload="${escapeHTML(prod.product_id)}"><div class="relative pb-[100%] bg-gray-100 flex-shrink-0"><img src="${escapeHTML(prod.main_image)}" class="absolute top-0 left-0 w-full h-full object-cover" loading="lazy" onerror="this.src='${FALLBACK_IMG}'">${hasPromo && stockInfo.isAvailable ? '<div class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-bl-lg z-10 shadow-sm">PROMO</div>' : ''}${!stockInfo.isAvailable ? '<div class="absolute inset-0 bg-black/40 flex items-center justify-center z-10"><span class="bg-gray-800 text-white text-xs md:text-sm font-bold px-3 py-1 rounded">HABIS</span></div>' : ''}</div><div class="p-2 md:p-3 flex flex-col flex-1 justify-between"><div><h4 class="text-xs md:text-sm text-gray-800 line-clamp-2 h-[32px] md:h-[40px] leading-relaxed">${escapeHTML(prod.product_name)}</h4><div class="mt-1 flex flex-col"><span class="text-primary font-bold text-sm md:text-base">${formatRupiah(finalPrice)}</span>${origPrice}</div></div><div class="mt-2 flex items-center justify-between text-[10px] md:text-xs text-gray-500 pt-1.5 border-t border-gray-50"><div class="flex items-center truncate max-w-[60%]"><i data-lucide="map-pin" class="w-3 h-3 mr-0.5 text-gray-400 flex-shrink-0"></i><span class="truncate">${escapeHTML(locationText)}</span></div><span class="flex-shrink-0 ml-1 font-medium ${stockInfo.isAvailable ? '' : 'text-red-500'}">${escapeHTML(stockInfo.text)}</span></div></div></div>`;
     }
 
     function renderRepurchaseSection() {
@@ -844,9 +1017,10 @@
 
     function renderProducts(isReset = true) {
         if (isReset) {
-            currentPage = 1; hasMoreData = true; isLoadingMore = false;
+            currentPage = 1; 
+            hasMoreData = true; 
+            isLoadingMore = false;
             let filtered = liveProducts;
-            if (activeCategoryId || activeCategoryName) filtered = filtered.filter(p => p.product_category === activeCategoryName || p.category_id === activeCategoryId);
             
             // 1. UMKM Pilihan
             let featHtml = ''; const featureds = liveProducts.filter(p => p.featured).slice(0, 5); featureds.forEach(p => featHtml += `<div class="min-w-[140px] md:min-w-[180px] h-full">${createProductCard(p)}</div>`); document.getElementById('featured-container').innerHTML = featHtml || `<div class="text-xs text-gray-400 py-2 w-full text-center">Belum ada pilihan.</div>`;
@@ -857,7 +1031,20 @@
 
             // 4. Rekomendasi (Disimpan untuk Pagination)
             let recs = [...filtered];
-            if(activeFilter === 'terbaru') recs.reverse(); else if (activeFilter === 'terpopuler') recs.sort((a,b) => b.views - a.views); else if (activeFilter === 'harga') recs.sort((a,b) => sortHargaAsc ? (getFinalPrice(a) - getFinalPrice(b)) : (getFinalPrice(b) - getFinalPrice(a))); else if (activeFilter === 'terdekat') recs.sort(() => Math.random() - 0.5);
+            if(activeFilter === 'terbaru') recs.reverse(); 
+            else if (activeFilter === 'terpopuler') recs.sort((a,b) => b.views - a.views); 
+            else if (activeFilter === 'harga') recs.sort((a,b) => sortHargaAsc ? (getFinalPrice(a) - getFinalPrice(b)) : (getFinalPrice(b) - getFinalPrice(a))); 
+            else if (activeFilter === 'terdekat') {
+                if (authState.status === 'AUTHENTICATED' && authState.user && authState.user.city) {
+                    const userCity = authState.user.city.toLowerCase();
+                    recs = recs.filter(p => {
+                        const seller = sellerCache[p.seller_id];
+                        return seller && seller.location && seller.location.toLowerCase() === userCity;
+                    });
+                } else {
+                    recs = []; // Kosongkan jika belum login / belum ada kota
+                }
+            }
             
             currentFilteredProducts = recs;
             document.getElementById('products-container').innerHTML = '';
@@ -874,7 +1061,15 @@
 
         let gridHtml = ''; 
         if(currentFilteredProducts.length === 0 && isReset) { 
-            gridHtml = `<div class="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-12"><i data-lucide="package-open" class="w-12 h-12 text-gray-300 mx-auto mb-2"></i><p class="text-gray-500 text-sm">Produk tidak ditemukan.</p></div>`; 
+            let emptyMsg = "Produk tidak ditemukan.";
+            if (activeFilter === 'terdekat') {
+                if (!authState.user || !authState.user.city) {
+                    emptyMsg = "Silakan login dan atur Kota Anda di Menu Akun untuk melihat produk terdekat.";
+                } else {
+                    emptyMsg = "Belum ada produk dari penjual di kota Anda (" + escapeHTML(authState.user.city) + ").";
+                }
+            }
+            gridHtml = `<div class="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-12"><i data-lucide="package-open" class="w-12 h-12 text-gray-300 mx-auto mb-2"></i><p class="text-gray-500 text-sm">${emptyMsg}</p></div>`; 
             container.innerHTML = gridHtml;
             hasMoreData = false;
         } else { 
@@ -995,7 +1190,7 @@
     function switchView(viewId) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active')); const target = document.getElementById(viewId); if(target) target.classList.add('active');
         const bottomNav = document.getElementById('bottom-nav');
-        if (['view-product', 'view-seller', 'view-seller-dashboard', 'view-search', 'view-mitra'].includes(viewId)) bottomNav.classList.add('hidden'); 
+        if (['view-product', 'view-seller', 'view-seller-dashboard', 'view-search', 'view-mitra', 'view-category'].includes(viewId)) bottomNav.classList.add('hidden'); 
         else {
             bottomNav.classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(el => { const icon = el.querySelector('.nav-icon'); if(icon) { icon.classList.remove('text-primary', 'fill-orange-100'); icon.classList.add('text-gray-400'); } const text = el.querySelector('.nav-text'); if(text) { text.classList.remove('text-primary'); text.classList.add('text-gray-500'); } });
@@ -1026,9 +1221,18 @@
         if(!container) return;
         container.innerHTML = renderProdSkeleton(8);
         setTimeout(() => {
-            let newest = [...liveProducts].sort((a, b) => b.product_id.localeCompare(a.product_id));
+            const fourteenDaysMs = 14 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            
+            // Filter produk (Maksimal 14 hari) dan Urutkan dari yang Paling Baru
+            let newest = liveProducts.filter(p => {
+                if (!p.upload_date) return false;
+                const uploadTime = new Date(p.upload_date).getTime();
+                return (now - uploadTime) <= fourteenDaysMs;
+            }).sort((a, b) => new Date(b.upload_date).getTime() - new Date(a.upload_date).getTime());
+
             if (newest.length === 0) {
-                container.innerHTML = `<div class="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-20"><i data-lucide="sparkles" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p class="text-gray-500">Belum ada produk yang tersedia.</p></div>`;
+                container.innerHTML = `<div class="col-span-2 md:col-span-3 lg:col-span-4 xl:col-span-5 text-center py-20"><i data-lucide="sparkles" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p class="text-gray-500 text-sm">Belum ada produk baru dalam 14 hari terakhir.</p></div>`;
             } else {
                 let html = ''; newest.forEach(p => html += createProductCard(p)); container.innerHTML = html;
             }
@@ -1043,13 +1247,23 @@
         container.innerHTML = `<div class="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 skeleton h-24 mb-3"></div>`.repeat(5);
         
         setTimeout(() => {
-            const sellers = MOCK_SELLERS; 
+            // Wayout Cek Login & Kota
+            if (authState.status !== 'AUTHENTICATED' || !authState.user || !authState.user.city) {
+                container.innerHTML = `<div class="text-center py-20 px-4 text-gray-500"><i data-lucide="map-pin-off" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p class="mb-4">Silakan login dan atur Kota Anda di Menu Profil untuk melihat toko di sekitar.</p><button data-action="switchView" data-payload="view-account" class="text-xs bg-primary text-white hover:bg-primaryDark transition px-6 py-2.5 rounded-full font-bold shadow-sm active:scale-95">Atur Profil</button></div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            const userCity = authState.user.city.toLowerCase();
+            // Ambil data toko unik dari sellerCache dan filter kotanya
+            const sellers = Object.values(sellerCache).filter(s => s.location && s.location.toLowerCase() === userCity);
+            
             if(sellers.length === 0) {
-                container.innerHTML = `<div class="text-center py-20 text-gray-500"><i data-lucide="map-pin-off" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p>Belum ada toko UMKM di sekitarmu.</p></div>`;
+                container.innerHTML = `<div class="text-center py-20 px-4 text-gray-500"><i data-lucide="map-pin-off" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p>Belum ada toko UMKM yang terdaftar di ${escapeHTML(authState.user.city)}.</p></div>`;
             } else {
                 let html = '';
                 sellers.forEach(s => {
-                    const logoImg = `https://placehold.co/100x100/FF6B00/ffffff?text=${encodeURIComponent(s.store_name.substring(0,2))}`;
+                    const logoImg = s.logo || `https://placehold.co/100x100/FF6B00/ffffff?text=${encodeURIComponent(s.name.substring(0,2))}`;
                     html += `
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-5 flex items-center justify-between hover:shadow-md transition">
                         <div class="flex items-center gap-3 md:gap-4">
@@ -1057,8 +1271,8 @@
                                 <img src="${logoImg}" class="w-full h-full object-cover">
                             </div>
                             <div>
-                                <div class="font-bold text-gray-800 text-sm md:text-base flex items-center gap-1">${escapeHTML(s.store_name)} <i data-lucide="badge-check" class="w-4 h-4 text-blue-500 fill-blue-50"></i></div>
-                                <div class="text-xs text-gray-500 flex items-center mt-1"><i data-lucide="map-pin" class="w-3 h-3 mr-1 text-gray-400"></i> ${escapeHTML(s.city)}</div>
+                                <div class="font-bold text-gray-800 text-sm md:text-base flex items-center gap-1">${escapeHTML(s.name)} <i data-lucide="badge-check" class="w-4 h-4 text-blue-500 fill-blue-50"></i></div>
+                                <div class="text-xs text-gray-500 flex items-center mt-1"><i data-lucide="map-pin" class="w-3 h-3 mr-1 text-gray-400"></i> ${escapeHTML(s.location)}</div>
                                 <div class="text-[10px] text-green-700 mt-1.5 font-bold bg-green-50 px-2 py-0.5 rounded border border-green-200 inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span> Buka</div>
                             </div>
                         </div>
@@ -1181,10 +1395,10 @@
                 if (pIndex !== -1) { liveProducts[pIndex] = { ...liveProducts[pIndex], product_name: pName, category_id: pCatId, product_category: pCatObj.name, stock: pStock, price: Number(pPrice), promo_price: Number(pPromo), main_image: pImg, description: pDesc }; }
                 showToast("Etalase berhasil diperbarui.");
             } else {
-                const newP = { product_id: "P_NEW_" + Date.now(), seller_id: authState.seller.seller_id, category_id: pCatId, product_category: pCatObj.name || "Lainnya", product_name: pName, price: Number(pPrice), promo_price: Number(pPromo), main_image: pImg, description: pDesc, stock: pStock, views: 0, featured: false, status: "ACTIVE" };
+                const newP = { product_id: "P_NEW_" + Date.now(), seller_id: authState.seller.seller_id, category_id: pCatId, product_category: pCatObj.name || "Lainnya", product_name: pName, price: Number(pPrice), promo_price: Number(pPromo), main_image: pImg, description: pDesc, stock: pStock, views: 0, featured: false, status: "ACTIVE", upload_date: new Date().toISOString() };
                 liveProducts.unshift(newP); showToast("Produk baru tayang di aplikasi!");
             }
-            closeProductForm(); renderSellerDashboard(); document.getElementById('products-container').innerHTML = renderProdSkeleton(4); setTimeout(() => renderProducts(true), 250); btn.innerHTML = origText; btn.disabled = false;
+            closeProductForm(); renderSellerDashboard(); document.getElementById('products-container').innerHTML = renderProdSkeleton(4); setTimeout(() => renderProducts(), 250); btn.innerHTML = origText; btn.disabled = false;
         }, 800);
     }
     function deleteProductFromDashboard(pId) { if(confirm("Apakah Anda yakin ingin menghapus produk ini selamanya?")) { liveProducts = liveProducts.filter(p => p.product_id !== pId); showToast("Produk berhasil dihapus."); renderSellerDashboard(); setTimeout(() => renderProducts(true), 250); } }
@@ -1275,6 +1489,7 @@
             case 'closeRating': closeRatingModal(); break;
             case 'setStar': setRatingStar(parseInt(payload)); break;
             case 'submitRating': submitSellerRating(); break;
+            case 'toggleVideoMute': { const vid = document.getElementById(payload); const btn = document.getElementById('btn-mute-' + payload); if(vid && btn) { vid.muted = !vid.muted; btn.innerHTML = vid.muted ? '<i data-lucide="volume-x" class="w-4 h-4"></i>' : '<i data-lucide="volume-2" class="w-4 h-4 text-green-400"></i>'; lucide.createIcons(); } break; }
             case 'openSellerDashboard': switchView('view-seller-dashboard'); renderSellerDashboard(); break;
             case 'openProductForm': openProductForm(payload); break;
             case 'closeProductForm': closeProductForm(); break;
@@ -1309,10 +1524,16 @@
         
         initPWA();
         
-        await checkAuthSession();
-        try { await Promise.all([loadCategories(), loadProducts()]); } 
-        catch (e) { showToast("Gagal menyambung ke server utama. Menampilkan data lokal.", true); } 
-        finally { document.getElementById('global-loader').classList.remove('active'); setTimeout(() => { document.getElementById('global-loader').style.display = 'none'; }, 300); }
+        // Jangan blokir first paint karena validasi session. Jalankan bersamaan dengan catalog.
+        const authPromise = checkAuthSession().catch(() => {});
+        try {
+            await Promise.all([loadCategories(), loadProducts(), authPromise]);
+        } catch (e) {
+            showToast("Gagal menyambung ke server utama. Menampilkan data lokal.", true);
+        } finally {
+            document.getElementById('global-loader').classList.remove('active');
+            setTimeout(() => { document.getElementById('global-loader').style.display = 'none'; }, 300);
+        }
     }
 
     function initPWA() {
