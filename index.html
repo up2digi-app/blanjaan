@@ -571,7 +571,7 @@
 </template>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyg6MNCUsO5Gcyxs5LV2H-_leLzX8G-XSCIf0uWq6ZKMocO0Lnny5a14tdjN4KEyDF-WQ/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbyC2wU_KzKjJk8Cnhg_fP2a4Jk3z9_l4_P9-Q7mXkLzZqT3zGv4j7m4kZ_L-P9Q7mXk/exec"; 
     const FALLBACK_IMG = "https://placehold.co/300x300/f3f4f6/a1a1aa?text=BLANJAAN";
     const SESSION_KEY = "blanjaan_session";
 
@@ -642,7 +642,7 @@
     }
 
     const API_TIMEOUT_MS = 12000;
-    const FRONTEND_BACKEND_EXPECTED_VERSION = '1.2.0';
+    const FRONTEND_BACKEND_EXPECTED_VERSION = '1.2.1';
     let authCheckGeneration = 0;
 
     async function fetchAPI(action, payload = null) {
@@ -667,6 +667,7 @@
             console.warn(`[API Gagal] ${action}: ${reason}`);
             if (action === 'categories') return MOCK_CATEGORIES;
             if (action === 'products') return MOCK_PRODUCTS;
+            if (action === 'catalog') return { categories: MOCK_CATEGORIES, products: MOCK_PRODUCTS, sellers: MOCK_SELLERS };
             if (action === 'seller') {
                 let id = null; if(payload && payload.id) id = payload.id; else if (typeof payload === 'string' && payload.includes('id=')) { const match = payload.match(/id=([^&]*)/); id = match ? match[1] : null; }
                 const found = MOCK_SELLERS.filter(s => s.seller_id === id); return found.length > 0 ? found : [MOCK_SELLERS[0]];
@@ -924,11 +925,49 @@
 
     function normalizeProducts(rawList) { if (!Array.isArray(rawList)) return []; return rawList.map(p => ({ product_id: normalizeId(p.product_id), seller_id: normalizeId(p.seller_id), category_id: normalizeId(p.category_id), product_category: normalizeText(p.product_category), product_name: normalizeText(p.product_name), price: Number(p.price) || 0, promo_price: Number(p.promo_price) || 0, main_image: validateHttpsUrl(p.main_image) || p.main_image || FALLBACK_IMG, description: normalizeText(p.description), specification: normalizeText(p.specification), stock: p.stock, views: Number(p.views) || 0, featured: parseBoolean(p.featured) || parseBoolean(p.is_featured), status: normalizeStatus(p.status), upload_date: p.upload_date || new Date(0).toISOString() })).filter(p => p.status === 'ACTIVE'); }
     
+    function cacheSellerData(sData) {
+        if (!sData) return null;
+        const id = normalizeId(sData.seller_id);
+        if (!id) return null;
+        sellerCache[id] = {
+            seller_id: id,
+            name: normalizeText(sData.store_name),
+            location: normalizeText(sData.city || sData.district),
+            wa: normalizeWhatsAppNumber(sData.wa),
+            website: validateHttpsUrl(sData.website),
+            logo: sData.logo ? validateHttpsUrl(sData.logo) : null,
+            banner: sData.banner ? validateHttpsUrl(sData.banner) : null,
+            description: normalizeText(sData.description)
+        };
+        return sellerCache[id];
+    }
+
     let sellerRequestCache = {};
     async function getSeller(sellerId) {
         const id = normalizeId(sellerId); if (!id) return null; if (sellerCache[id]) return sellerCache[id]; if (sellerRequestCache[id]) return sellerRequestCache[id];
-        sellerRequestCache[id] = (async () => { try { const data = await fetchAPI("seller", { id }); let sData = null; if (data && !Array.isArray(data)) sData = data; else if (Array.isArray(data) && data.length > 0) sData = data[0]; if (sData) { sellerCache[id] = { seller_id: id, name: normalizeText(sData.store_name), location: normalizeText(sData.city || sData.district), wa: normalizeWhatsAppNumber(sData.wa), website: validateHttpsUrl(sData.website), logo: sData.logo ? validateHttpsUrl(sData.logo) : null, banner: sData.banner ? validateHttpsUrl(sData.banner) : null, description: normalizeText(sData.description) }; return sellerCache[id]; } } catch (e) {} finally { delete sellerRequestCache[id]; } return null; })();
+        sellerRequestCache[id] = (async () => { try { const data = await fetchAPI("seller", { id }); let sData = null; if (data && !Array.isArray(data)) sData = data; else if (Array.isArray(data) && data.length > 0) sData = data[0]; if (sData) return cacheSellerData({ ...sData, seller_id: id }); } catch (e) {} finally { delete sellerRequestCache[id]; } return null; })();
         return sellerRequestCache[id];
+    }
+
+    async function loadCatalog() {
+        try {
+            const data = await fetchAPI("catalog", { limit: 100, offset: 0 });
+            const categories = Array.isArray(data?.categories) ? data.categories : [];
+            const products = Array.isArray(data?.products) ? data.products : [];
+            const sellers = Array.isArray(data?.sellers) ? data.sellers : [];
+
+            liveCategories = categories.map(c => ({ id: normalizeId(c.category_id), name: normalizeText(c.category_name), status: normalizeStatus(c.status) })).filter(c => c.status === "ACTIVE");
+            liveProducts = normalizeProducts(products);
+            sellerCache = {};
+            sellers.forEach(cacheSellerData);
+
+            renderCategories();
+            renderProducts(true);
+        } catch (e) {
+            document.getElementById('category-container').innerHTML = renderCatSkeleton();
+            document.getElementById('products-container').innerHTML = renderProdSkeleton(4);
+            throw e;
+        }
     }
 
     async function loadCategories() { try { const data = await fetchAPI("categories"); liveCategories = data.map(c => ({ id: normalizeId(c.category_id), name: normalizeText(c.category_name), status: normalizeStatus(c.status) })).filter(c => c.status === "ACTIVE"); renderCategories(); } catch(e) { document.getElementById('category-container').innerHTML = `<div class="text-xs text-gray-500 w-full text-center py-4">Gagal memuat kategori</div>`; } }
@@ -992,8 +1031,6 @@
             // Implementasi fetchAPI dengan limit & offset untuk Backend (Tahap 2)
             const rawData = await fetchAPI("products", { limit: 100, offset: 0 }); 
             liveProducts = normalizeProducts(rawData); 
-            const uniqueSellerIds = [...new Set(liveProducts.map(p => p.seller_id))]; 
-            await Promise.all(uniqueSellerIds.map(id => getSeller(id))); 
             renderProducts(true); 
         } catch (e) { 
             document.getElementById('products-container').innerHTML = `<div class="col-span-2 text-center text-sm text-gray-500 py-10">Gagal memuat produk.</div>`; 
@@ -1524,16 +1561,24 @@
         
         initPWA();
         
-        // Jangan blokir first paint karena validasi session. Jalankan bersamaan dengan catalog.
+        // Validasi session dan initial catalog berjalan di background.
+        // Global loader hanya dipakai untuk fase boot DOM yang sangat singkat;
+        // jangan menunggu jaringan/API agar UI langsung interaktif.
         const authPromise = checkAuthSession().catch(() => {});
-        try {
-            await Promise.all([loadCategories(), loadProducts(), authPromise]);
-        } catch (e) {
-            showToast("Gagal menyambung ke server utama. Menampilkan data lokal.", true);
-        } finally {
-            document.getElementById('global-loader').classList.remove('active');
-            setTimeout(() => { document.getElementById('global-loader').style.display = 'none'; }, 300);
-        }
+        loadCatalog().catch(() => {
+            showToast("Server utama belum merespons. Menampilkan data lokal.", true);
+            try {
+                liveCategories = MOCK_CATEGORIES.map(c => ({ id: c.category_id, name: c.category_name, status: c.status }));
+                liveProducts = normalizeProducts(MOCK_PRODUCTS);
+                sellerCache = {};
+                MOCK_SELLERS.forEach(cacheSellerData);
+                renderCategories();
+                renderProducts(true);
+            } catch (fallbackError) {}
+        });
+        document.getElementById('global-loader').classList.remove('active');
+        setTimeout(() => { document.getElementById('global-loader').style.display = 'none'; }, 80);
+        void authPromise;
     }
 
     function initPWA() {
