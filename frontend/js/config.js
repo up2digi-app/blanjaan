@@ -2,7 +2,7 @@
  * BLANJAAN v2.0 — Global Config & State Variables
  */
 
-const API_URL = "/api";
+const API_URL = "https://blanjaan.up2digital.workers.dev";
 const FALLBACK_IMG = "https://placehold.co/300x300/f3f4f6/a1a1aa?text=BLANJAAN";
 const FALLBACK_LOGO = "https://placehold.co/100x100/FF6B00/ffffff?text=Toko";
 const FALLBACK_SELLER_BANNER = "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1200&q=80";
