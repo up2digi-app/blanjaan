@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables & secrets
+.env
+.env.*
+wrangler.toml
+!wrangler.toml.example
+
+# Build outputs
+dist/
+.wrangler/
+
+# OS files
+.DS_Store
+Thumbs.db
