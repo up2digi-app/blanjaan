@@ -1,0 +1,21 @@
+{
+  "name": "BLANJAAN V2",
+  "short_name": "BLANJAAN",
+  "description": "Belanja Produk Lokal Jadi Mudah",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#EE4D2D",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/logo-header.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/up2digi-app/up2digital-assets/main/blanjaan/logo-header.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

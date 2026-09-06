@@ -1,0 +1,14 @@
+{
+  "name": "blanjaan-worker",
+  "version": "2.0.0",
+  "description": "BLANJAAN Cloudflare Worker Backend — Supabase + Resend",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.80.0"
+  }
+}

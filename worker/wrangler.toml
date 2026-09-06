@@ -1,0 +1,30 @@
+name = "blanjaan-worker"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# Konfigurasi Routes — sesuaikan dengan domain Cloudflare Pages Anda
+# routes = [
+#   { pattern = "blanjaan.pages.dev/api/*", zone_name = "blanjaan.pages.dev" }
+# ]
+
+[vars]
+APP_NAME = "BLANJAAN"
+APP_VERSION = "2.0.0"
+APP_TZ = "Asia/Jakarta"
+
+# Environment Variables sensitif — set via:
+# npx wrangler secret put SUPABASE_URL
+# npx wrangler secret put SUPABASE_KEY
+# npx wrangler secret put RESEND_API_KEY
+
+[[dev.vars]]
+# File .dev.vars (jangan commit!) untuk development lokal:
+# SUPABASE_URL=https://xxxx.supabase.co
+# SUPABASE_KEY=eyJhb...
+# RESEND_API_KEY=re_...
+
+[build]
+command = ""
+cwd = ""
+watch_dir = "src"
