@@ -14,7 +14,8 @@
     <title>BLANJAAN - Belanja Produk Lokal Jadi Mudah</title>
     <!-- PWA Web App Manifest (Data URI) -->
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22BLANJAAN%22%2C%22short_name%22%3A%22BLANJAAN%22%2C%22description%22%3A%22Belanja%20Produk%20Lokal%20Jadi%20Mudah%22%2C%22start_url%22%3A%22%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f5f5f5%22%2C%22theme_color%22%3A%22%23EE4D2D%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Fup2digi-app%2Fup2digital-assets%2Fmain%2Fblanjaan%2Flogo-header.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Fup2digi-app%2Fup2digital-assets%2Fmain%2Fblanjaan%2Flogo-header.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
-    <script src="https://cdn.tailwindcss.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
         // v1.4.27 production hardening: keep client version explicit for diagnostics.
         window.BLANJAAN_VERSION = '1.4.29';
     </script>
@@ -1326,8 +1327,8 @@
         // KONFIGURASI SUPABASE (UP2DIGITAL BLANJAAN)
         // Harap isi SUPABASE_URL dan SUPABASE_ANON_KEY di bawah ini
         // ==========================================
-        export const SUPABASE_URL = "";
-        export const SUPABASE_ANON_KEY = "";
+        export const SUPABASE_URL = "https://caauvpzkonzbfwvvrthw.supabase.co/";
+        export const SUPABASE_ANON_KEY = "sb_publishable_yy3EHRhrP_aDWcn2YQLcNg_ZRDDor2G";
 
         export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
             ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -1755,6 +1756,7 @@
                                 renderAccountState();
                             }
                         } catch (err) {
+                            console.error('[Auth Error]', err);
                             showToast(err.message || 'Gagal memproses autentikasi.', true);
                         } finally {
                             btnSubmit.innerHTML = origText;
@@ -3423,29 +3425,16 @@
             }, 3500);
         }
 
-        // Dynamic Service Worker PWA (Blob)
+        // PWA Service Worker Management
         function initPWA() {
+            // Service worker berbasis Blob diblokir oleh browser modern (Chrome/Safari)
+            // Lakukan unregister pada worker lama untuk membersihkan error konsol
             if ('serviceWorker' in navigator) {
-                const swCode = `
-                    const CACHE_NAME = 'blanjaan-supabase-pwa-v1';
-                    self.addEventListener('install', (e) => { self.skipWaiting(); });
-                    self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
-                    self.addEventListener('fetch', (e) => {
-                        if (e.request.method === 'GET' && e.request.url.startsWith('http')) {
-                            e.respondWith(
-                                fetch(e.request).then((resp) => {
-                                    const respClone = resp.clone();
-                                    caches.open(CACHE_NAME).then(c => c.put(e.request, respClone));
-                                    return resp;
-                                }).catch(() => caches.match(e.request))
-                            );
-                        }
-                    });
-                `;
-                const swBlob = new Blob([swCode], { type: 'text/javascript' });
-                navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-                    .then(() => console.log('[PWA] ServiceWorker Registered via Blob'))
-                    .catch(err => console.warn('[PWA] Registration failed:', err));
+                navigator.serviceWorker.getRegistrations().then((registrations) => {
+                    for (const reg of registrations) {
+                        reg.unregister();
+                    }
+                }).catch(() => {});
             }
         }
 
