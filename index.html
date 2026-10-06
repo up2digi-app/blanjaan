@@ -1326,8 +1326,8 @@
         // KONFIGURASI SUPABASE (UP2DIGITAL BLANJAAN)
         // Harap isi SUPABASE_URL dan SUPABASE_ANON_KEY di bawah ini
         // ==========================================
-        export const SUPABASE_URL = "https://caauvpzkonzbfwvvrthw.supabase.co/";
-        export const SUPABASE_ANON_KEY = "sb_publishable_yy3EHRhrP_aDWcn2YQLcNg_ZRDDor2G";
+        export const SUPABASE_URL = "";
+        export const SUPABASE_ANON_KEY = "";
 
         export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
             ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -1338,14 +1338,8 @@
         const FALLBACK_IMG = "https://placehold.co/300x300/f3f4f6/a1a1aa?text=BLANJAAN";
         const FALLBACK_LOGO = "https://placehold.co/100x100/FF6B00/ffffff?text=Toko";
         const FALLBACK_SELLER_BANNER = "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?auto=format&fit=crop&w=1200&q=80";
-        const SESSION_KEY = "blanjaan_session";
-        const SESSION_META_KEY = "blanjaan_session_meta";
-        const AUTH_SNAPSHOT_KEY = "blanjaan_auth_snapshot";
-        const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
-
         let appConfig = {};
         let sellerPreviewFromDashboard = false;
-        let lastActivityPersistAt = 0;
 
         let liveProducts = [];
         let liveCategories = [];
@@ -1435,40 +1429,7 @@
         }
         window.showToast = showToast;
 
-        function getAuthSnapshot() {
-            try {
-                const raw = localStorage.getItem(AUTH_SNAPSHOT_KEY);
-                const parsed = raw ? JSON.parse(raw) : null;
-                return parsed && parsed.user ? parsed : null;
-            } catch (_) { return null; }
-        }
-        function saveAuthSnapshot() {
-            try {
-                if (!authState.user) return;
-                localStorage.setItem(AUTH_SNAPSHOT_KEY, JSON.stringify({
-                    user: authState.user,
-                    seller: authState.seller || null,
-                    sellerApplication: authState.sellerApplication || null,
-                    savedAt: Date.now()
-                }));
-            } catch (_) { }
-        }
-        function restoreAuthSnapshot() {
-            const snap = getAuthSnapshot();
-            if (!snap || !snap.user) return false;
-            authState.user = snap.user;
-            authState.seller = snap.seller || null;
-            authState.sellerApplication = snap.sellerApplication || null;
-            authState.status = 'AUTHENTICATED';
-            return true;
-        }
-
-        function clearSessionStorage(clearSnapshot = true) {
-            localStorage.removeItem(SESSION_KEY);
-            localStorage.removeItem(SESSION_META_KEY);
-            sessionStorage.removeItem(SESSION_KEY);
-            sessionStorage.removeItem(SESSION_META_KEY);
-            if (clearSnapshot) localStorage.removeItem(AUTH_SNAPSHOT_KEY);
+        function clearSessionState() {
             authState.user = null;
             authState.seller = null;
             authState.sellerApplication = null;
@@ -1476,35 +1437,7 @@
             authState.sessionToken = null;
             authState.status = "GUEST";
         }
-
-        function touchSessionActivity(force = false) {
-            const now = Date.now();
-            if (!force && now - lastActivityPersistAt < 15000) return;
-            lastActivityPersistAt = now;
-            try {
-                const meta = JSON.parse(localStorage.getItem(SESSION_META_KEY) || sessionStorage.getItem(SESSION_META_KEY) || '{}');
-                meta.lastActivity = now;
-                localStorage.setItem(SESSION_META_KEY, JSON.stringify(meta));
-            } catch (_) { }
-        }
-
-        function initIdleSessionGuard() {
-            ['click', 'keydown', 'touchstart', 'scroll', 'pointerdown'].forEach(evt => document.addEventListener(evt, () => touchSessionActivity(false), { passive: true }));
-            setInterval(async () => {
-                if (authState.status !== 'AUTHENTICATED') return;
-                const now = Date.now();
-                let meta = {};
-                try { meta = JSON.parse(localStorage.getItem(SESSION_META_KEY) || sessionStorage.getItem(SESSION_META_KEY) || '{}'); } catch (_) { }
-                const lastActivity = Number(meta.lastActivity || 0);
-                if (lastActivity && now - lastActivity > IDLE_TIMEOUT_MS) {
-                    if (supabase) await supabase.auth.signOut().catch(() => {});
-                    clearSessionStorage();
-                    renderAccountState();
-                    renderHomeHeaderAuth();
-                    showToast('Sesi berakhir karena tidak ada aktivitas selama 30 menit.', true);
-                }
-            }, 30000);
-        }
+        const clearSessionStorage = clearSessionState;
 
         function formatWhatsAppForDisplay(phone) {
             const n = normalizeWhatsAppNumber(phone);
@@ -1517,13 +1450,31 @@
         }
 
         // ------------------------------------------
-        // SUPABASE AUTHENTICATION
+        // ROLE MANAGEMENT & VERIFIKASI HAK AKSES
+        // Standar Role: BUYER (default), SELLER, ADMIN
+        // ------------------------------------------
+        function hasRole(roleName) {
+            if (!authState.user || !Array.isArray(authState.user.roles)) return false;
+            const target = String(roleName).toUpperCase();
+            return authState.user.roles.some(r => String(r).toUpperCase() === target);
+        }
+
+        function hasAdminRoleClient() {
+            return hasRole('ADMIN') || hasRole('SUPERADMIN');
+        }
+
+        function hasSellerRoleClient() {
+            return hasRole('SELLER') || !!(authState.seller && authState.seller.status === 'ACTIVE');
+        }
+
+        // ------------------------------------------
+        // SUPABASE AUTHENTICATION & SESSION LIFECYCLE
         // ------------------------------------------
         async function loadUserProfileFromSupabase(sbUser) {
             if (!sbUser) return;
             try {
-                let { data: profile } = await supabase.from('users').select('*').eq('user_id', sbUser.id).maybeSingle();
-                if (!profile) {
+                let { data: profile, error: profErr } = await supabase.from('users').select('*').eq('user_id', sbUser.id).maybeSingle();
+                if (!profile && !profErr) {
                     const newProfile = {
                         user_id: sbUser.id,
                         email: sbUser.email,
@@ -1538,26 +1489,40 @@
                 }
 
                 let roles = ['BUYER'];
-                if (Array.isArray(profile.roles)) roles = profile.roles;
-                else if (typeof profile.roles === 'string') {
-                    try { roles = JSON.parse(profile.roles); } catch (_) { roles = profile.roles.split(',').map(s => s.trim()); }
+                if (profile && profile.roles) {
+                    if (Array.isArray(profile.roles)) {
+                        roles = profile.roles.map(r => String(r).toUpperCase());
+                    } else if (typeof profile.roles === 'string') {
+                        try {
+                            const parsed = JSON.parse(profile.roles);
+                            roles = Array.isArray(parsed) ? parsed.map(r => String(r).toUpperCase()) : [String(parsed).toUpperCase()];
+                        } catch (_) {
+                            roles = profile.roles.split(',').map(s => s.trim().toUpperCase());
+                        }
+                    }
+                }
+
+                // Ambil info seller jika pemilik toko aktif
+                const { data: seller } = await supabase.from('sellers').select('*').eq('owner_user_id', sbUser.id).maybeSingle();
+
+                // Sinkronkan peran SELLER di client jika toko sudah berstatus aktif
+                if (seller && seller.status === 'ACTIVE' && !roles.includes('SELLER')) {
+                    roles.push('SELLER');
                 }
 
                 authState.user = {
                     user_id: sbUser.id,
                     email: sbUser.email,
-                    display_name: profile.display_name || sbUser.email.split('@')[0],
-                    phone: profile.phone || '',
-                    city: profile.city || '',
-                    address: profile.address || '',
-                    profile_image: profile.profile_image || '',
+                    display_name: (profile && profile.display_name) || sbUser.user_metadata?.display_name || sbUser.email.split('@')[0],
+                    phone: (profile && profile.phone) || '',
+                    city: (profile && profile.city) || '',
+                    address: (profile && profile.address) || '',
+                    profile_image: (profile && profile.profile_image) || '',
                     roles: roles,
-                    status: profile.status || 'ACTIVE',
+                    status: (profile && profile.status) || 'ACTIVE',
                     has_password: true
                 };
 
-                // Ambil info seller jika pemilik toko
-                const { data: seller } = await supabase.from('sellers').select('*').eq('owner_user_id', sbUser.id).maybeSingle();
                 authState.seller = seller || null;
 
                 // Ambil info pengajuan toko terbaru jika ada
@@ -1572,36 +1537,56 @@
 
                 authState.sessionToken = sbUser.id;
                 authState.status = 'AUTHENTICATED';
-                saveAuthSnapshot();
-                touchSessionActivity(true);
             } catch (err) {
                 console.warn('[Supabase Profile]', err);
             }
         }
 
+        let isAuthListenerRegistered = false;
+
         async function checkAuthSession() {
             if (!supabase) {
-                // Mode fallback offline / tanpa supabase credentials
-                const restored = restoreAuthSnapshot();
-                if (restored) authState.status = 'AUTHENTICATED';
-                else authState.status = 'GUEST';
+                clearSessionState();
                 renderAccountState();
                 renderHomeHeaderAuth();
                 return;
             }
 
+            // Realtime event-driven listener: Single source of truth untuk seluruh daur hidup sesi
+            if (!isAuthListenerRegistered) {
+                isAuthListenerRegistered = true;
+                supabase.auth.onAuthStateChange(async (event, session) => {
+                    console.log('[Supabase Auth Event]', event);
+                    if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+                        if (session?.user) {
+                            await loadUserProfileFromSupabase(session.user);
+                        } else {
+                            clearSessionState();
+                        }
+                    } else if (event === 'SIGNED_OUT') {
+                        clearSessionState();
+                    } else if (event === 'PASSWORD_RECOVERY') {
+                        showToast('Tautan pemulihan akun diverifikasi. Silakan perbarui password Anda di profil.');
+                    }
+
+                    renderAccountState();
+                    renderHomeHeaderAuth();
+                    if (authState.status === 'AUTHENTICATED') {
+                        void renderAccountOrderHistory();
+                    }
+                });
+            }
+
+            // Inisialisasi awal tanpa memutus sesi refresh token yang sedang berjalan
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session?.user) {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (!error && session?.user) {
                     await loadUserProfileFromSupabase(session.user);
-                } else {
-                    clearSessionStorage();
-                    authState.status = "GUEST";
+                } else if (!session) {
+                    clearSessionState();
                 }
             } catch (err) {
                 console.warn('[CheckAuthSession]', err);
-                const restored = restoreAuthSnapshot();
-                authState.status = restored ? 'AUTHENTICATED' : 'GUEST';
             }
 
             renderAccountState();
@@ -1609,20 +1594,6 @@
             if (authState.status === 'AUTHENTICATED') {
                 void renderAccountOrderHistory();
             }
-
-            // Realtime auth listener
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                if (event === 'SIGNED_IN' && session?.user) {
-                    await loadUserProfileFromSupabase(session.user);
-                    renderAccountState();
-                    renderHomeHeaderAuth();
-                    void renderAccountOrderHistory();
-                } else if (event === 'SIGNED_OUT') {
-                    clearSessionStorage();
-                    renderAccountState();
-                    renderHomeHeaderAuth();
-                }
-            });
         }
 
         async function handleLogout() {
@@ -1631,7 +1602,7 @@
             } catch (e) {
                 console.warn('[Logout Error]', e);
             }
-            clearSessionStorage(true);
+            clearSessionState();
             renderAccountState();
             renderHomeHeaderAuth();
             showToast('Berhasil keluar.');
@@ -1655,10 +1626,6 @@
                 reg.classList.remove('hidden');
                 login.classList.remove('hidden');
             }
-        }
-
-        function hasAdminRoleClient() {
-            return !!(authState.user && Array.isArray(authState.user.roles) && authState.user.roles.map(r => String(r).toUpperCase()).includes('ADMIN'));
         }
 
         function renderAccountState() {
@@ -1729,9 +1696,11 @@
                         if (!email) return showToast('Masukkan alamat email Anda terlebih dahulu.', true);
                         if (!supabase) return showToast('Supabase belum dikonfigurasi.', true);
                         try {
-                            const { error } = await supabase.auth.resetPasswordForEmail(email);
+                            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                                redirectTo: window.location.origin
+                            });
                             if (error) throw error;
-                            showToast('Tautan reset password telah dikirim ke email Anda.');
+                            showToast('Tautan reset password telah dikirim ke email Anda. Periksa kotak masuk.');
                         } catch (err) {
                             showToast(err.message || 'Gagal mengirim tautan reset.', true);
                         }
@@ -1965,7 +1934,6 @@
                         if (error) throw error;
                     }
                     Object.assign(authState.user, payload);
-                    saveAuthSnapshot();
                     showToast('Profil berhasil disimpan.');
                     renderAccountState();
                 } catch (err) {
@@ -3220,6 +3188,24 @@
                             updated_at: new Date().toISOString()
                         });
                         await supabase.from('seller_applications').update({ status: 'APPROVED', updated_at: new Date().toISOString() }).eq('application_id', appId);
+
+                        // Sinkronisasi: Update roles user menjadi SELLER di database
+                        const { data: targetUser } = await supabase.from('users').select('roles').eq('user_id', app.user_id).maybeSingle();
+                        let currentRoles = ['BUYER'];
+                        if (targetUser && Array.isArray(targetUser.roles)) {
+                            currentRoles = targetUser.roles.map(r => String(r).toUpperCase());
+                        } else if (targetUser && typeof targetUser.roles === 'string') {
+                            try {
+                                const parsed = JSON.parse(targetUser.roles);
+                                currentRoles = Array.isArray(parsed) ? parsed.map(r => String(r).toUpperCase()) : [String(parsed).toUpperCase()];
+                            } catch (_) {
+                                currentRoles = targetUser.roles.split(',').map(s => s.trim().toUpperCase());
+                            }
+                        }
+                        if (!currentRoles.includes('SELLER')) {
+                            currentRoles.push('SELLER');
+                            await supabase.from('users').update({ roles: currentRoles, updated_at: new Date().toISOString() }).eq('user_id', app.user_id);
+                        }
                     }
                     showToast('Pengajuan seller disetujui!');
                 } else {
@@ -3359,6 +3345,10 @@
                     submitSellerRating();
                     break;
                 case 'openSellerDashboard':
+                    if (!hasSellerRoleClient()) {
+                        showToast('Akses khusus Mitra Pedagang aktif.', true);
+                        break;
+                    }
                     switchView('view-seller-dashboard');
                     renderSellerDashboard();
                     break;
@@ -3485,7 +3475,6 @@
             switchView('view-home');
             lucide.createIcons();
             initPWA();
-            initIdleSessionGuard();
 
             // Parallel loading Auth + Catalog
             await Promise.allSettled([
